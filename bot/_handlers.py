@@ -1,4 +1,4 @@
-from telepot.namedtuple import InlineQueryResultGif
+from telepot.namedtuple import InlineQueryResultCachedGif
 from logger import setup_logger
 
 
@@ -38,7 +38,7 @@ def handle_inline_query(self, user, update):
     # Prepare results for the inline query response
     results = []
     for gif in gifs:
-        results.append(InlineQueryResultGif(
+        results.append(InlineQueryResultCachedGif(
             id=gif['id'],  # Unique identifier for this result
             gif_file_id=gif['file_id'],  # The file_id of the GIF
             title=gif['title'],  # Title of the GIF
