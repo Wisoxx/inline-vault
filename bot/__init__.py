@@ -44,7 +44,7 @@ class Bot:
         if "message" in update:
             user = update["message"]["chat"]["id"]
         elif "callback_query" in update:
-            user = update["callback_query"]["message"]["chat"]["id"]
+            user = update["inline_query"]["from"]["id"]
         else:
             raise KeyError("Couldn't find user")
 
