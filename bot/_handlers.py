@@ -19,13 +19,13 @@ def handle_inline_query(self, user, update):
         },
         {
             'id': '2',
-            'file_id': 'AAMCAgADGQEAAx9nE_xOnfzaVuW9oOV9YuOuuIj_JwACRikAAsh9UEpagFtOsXGdWQEAB20AAzYE',  # Use a Telegram file_id if uploaded
+            'file_id': 'CgACAgIAAxkBAAMfZxP8Tp382lblvaDlfWLjrriI_ycAAkYpAALIfVBKWoBbTrFxnVk2BA',  # Use a Telegram file_id if uploaded
             'title': 'розумний дофіга да',
             'description': 'гіф розумний дофіга да',
         },
         {
             'id': '3',
-            'file_id': 'AAMCAgADGQEAAyFnE_xkC85gTuUxuqPb3dOBQ5ImxAACPywAAmW90EuEkBXwAAF65FUBAAdtAAM2BA',  # Use a Telegram file_id if uploaded
+            'file_id': 'CgACAgIAAxkBAAMhZxP8ZAvOYE7lMbqj293TgUOSJsQAAj8sAAJlvdBLhJAV8AABeuRVNgQ',  # Use a Telegram file_id if uploaded
             'title': 'питання відсутні',
             'description': 'гіф питання відсутні',
         }
