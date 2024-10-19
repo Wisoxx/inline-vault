@@ -39,7 +39,6 @@ def handle_inline_query(self, user, update):
             gif_file_id=gif['file_id'],  # The file_id of the GIF
             title=gif['title'],  # Title of the GIF
             description=gif['description'],  # Description of the GIF
-            thumb_url=gif['thumb_url']  # Optional thumbnail URL
         ))
 
     # Send the results back to Telegram
