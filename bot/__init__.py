@@ -8,6 +8,7 @@ logger = setup_logger(__name__)
 
 
 class Bot:
+    from ._handlers import handle_message, handle_inline_query
     def __init__(self, token):
         logger.info('Initializing bot...')
         self.bot = telepot.Bot(token)
@@ -35,11 +36,6 @@ class Bot:
         for user in users:
             self.deliver_message(user[0], text, reply_markup=reply_markup)
 
-    def broadcast_multilang(self, text: dict, reply_markup=None):
-        users = db.Users.execute_query("SELECT user_id, language FROM users;")
-        for user, lang in users:
-            self.deliver_message(user, text[lang], reply_markup=reply_markup)
-
     def get_user(self, update):
         if "message" in update:
             user = update["message"]["chat"]["id"]
@@ -65,6 +61,7 @@ class Bot:
                     self.deliver_message(user, "From the web: sorry, I didn't understand that kind of message")
 
             elif "inline_query" in update:
+                self.handle_inline_query(user, update)
                 self.deliver_message(user, update["inline_query"]["query"])
 
         except Exception as e:
