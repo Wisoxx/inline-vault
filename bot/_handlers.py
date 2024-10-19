@@ -1,4 +1,4 @@
-from telepot.namedtuple import InlineQueryResultCachedGif
+from telepot.namedtuple import InlineQueryResultCachedGif, InlineQueryResultArticle, InputTextMessageContent
 from logger import setup_logger
 
 
@@ -44,6 +44,15 @@ def handle_inline_query(self, user, update):
             title=gif['title'],  # Title of the GIF
             description=gif['description'],  # Description of the GIF
         ))
+
+    results.append(InlineQueryResultArticle(
+        id='text_1',  # Unique identifier for the text result
+        title='Some Info',  # Title of the text result
+        input_message_content=InputTextMessageContent(
+            message_text='This is a separate text result that provides additional information or context.'
+        ),
+        description='This text is for context and does not include any media.'
+    ))
 
     logger.debug("Results: %s", results)
     # Send the results back to Telegram
