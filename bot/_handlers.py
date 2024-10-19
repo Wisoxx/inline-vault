@@ -1,4 +1,8 @@
 from telepot.namedtuple import InlineQueryResultGif
+from logger import setup_logger
+
+
+logger = setup_logger(__name__)
 
 
 def handle_message(self, user, update):
@@ -41,5 +45,6 @@ def handle_inline_query(self, user, update):
             description=gif['description'],  # Description of the GIF
         ))
 
+    logger.debug("Results: %s", results)
     # Send the results back to Telegram
     self.answerInlineQuery(query_id, results)
