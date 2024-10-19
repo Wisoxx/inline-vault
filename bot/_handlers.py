@@ -59,5 +59,6 @@ def handle_inline_query(self, user, update):
     self.answerInlineQuery(
         query_id,
         results,
-        switch_pm_text="Add my own"
+        switch_pm_text="Add my own",
+        switch_pm_parameter="default"
     )
