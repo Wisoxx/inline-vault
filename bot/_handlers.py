@@ -56,4 +56,8 @@ def handle_inline_query(self, user, update):
 
     logger.debug("Results: %s", results)
     # Send the results back to Telegram
-    self.answerInlineQuery(query_id, results)
+    self.answerInlineQuery(
+        query_id,
+        results,
+        switch_pm_text="Add my own"
+    )
