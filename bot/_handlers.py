@@ -29,6 +29,7 @@ def handle_inline_query(self, user, update):
     if not fetched:
         self.answerInlineQuery(
             query_id,
+            [],
             switch_pm_text="No media found. Click to add",
             switch_pm_parameter="default"
         )
