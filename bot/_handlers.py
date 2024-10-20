@@ -99,7 +99,7 @@ def handle_inline_query(self, user, update):
                         id=str(media_id),
                         title='Text',
                         input_message_content=InputTextMessageContent(
-                            message_text=description
+                            message_text=file_id
                         ),
                         description=description
                     ))
