@@ -2,6 +2,7 @@ import database as db
 import telepot
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from logger import setup_logger
+import json
 
 
 logger = setup_logger(__name__)
@@ -29,7 +30,7 @@ class Bot:
 
         response = self.sendMessage(user, text, reply_to_message_id=reply_to_msg_id, reply_markup=final_reply_markup)
 
-        logger.debug("Sent message: {}".format(response))
+        logger.debug("Sent message: {}".format(json.dumps(response, indent=4)))
 
     def broadcast(self, text: str, reply_markup=None):
         users = db.Users.execute_query("SELECT user_id FROM users;")
@@ -49,7 +50,7 @@ class Bot:
     def handle_update(self, update):
         user = None
         try:
-            logger.debug('Received update: {}'.format(update))
+            logger.debug('Received update: {}'.format(json.dumps(update, indent=4)))  # pretty print logs
 
             user = self.get_user(update)
 
