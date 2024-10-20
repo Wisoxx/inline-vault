@@ -252,10 +252,11 @@ class Media(Database):
             CREATE TABLE IF NOT EXISTS media (
                 user_id INTEGER NOT NULL,
                 media_type TEXT NOT NULL,
-                file_id TEXT NOT NULL UNIQUE,
+                file_id TEXT NOT NULL,
                 caption TEXT,
                 media_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+                UNIQUE (user_id, file_id)
             );
         """
         create_table_fts_query = """
