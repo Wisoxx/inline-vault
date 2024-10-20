@@ -151,7 +151,7 @@ class Database:
         :return: List of fetched records
         """
 
-        query = custom_select if custom_select else "SELECT * FROM {cls.table_name}"
+        query = custom_select if custom_select else f"SELECT * FROM {cls.table_name}"
         params = []
 
         # Add WHERE conditions if provided
