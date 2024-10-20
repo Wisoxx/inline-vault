@@ -339,8 +339,8 @@ class Media(Database):
         params = [user_id]
 
         if description:
-            # Split the description into individual search terms
-            search_terms = description.split()
+            # Split the description into individual search terms and add prefix search
+            search_terms = [f"{term}*" for term in description.split()]
             # Create a search string with terms combined by OR
             search_query = ' OR '.join(search_terms)
 
