@@ -22,6 +22,8 @@ def handle_message(self, user, update):
 
                 db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description, "caption": caption})
                 self.deliver_message(user, "Successfully added")
+
+                db.Temp.delete({"user_id": user})  # cleanup
             case _:
                 media_type = "article"  # Treat as article for text
                 file_id = update["message"]["text"]
