@@ -326,7 +326,7 @@ class Media(Database):
         return cursor_media.rowcount > 0
 
     @classmethod
-    def search_by_description(cls, user_id: int, description: str, limit: int = None, offset: int = None) -> tuple:
+    def search_by_description(cls, user_id: int, description: str, limit: int = None, offset: int = None) -> tuple[list, int]:
         """
         Searches media by description using Full-Text Search (FTS).
 

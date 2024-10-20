@@ -1,8 +1,12 @@
-from telepot.namedtuple import InlineQueryResultCachedGif, InlineQueryResultArticle, InputTextMessageContent
+from telepot.namedtuple import InlineQueryResultCachedAudio, InlineQueryResultCachedDocument, InlineQueryResultCachedGif, InlineQueryResultCachedPhoto, InlineQueryResultCachedSticker, InlineQueryResultCachedVideo, InlineQueryResultCachedVoice, InlineQueryResultArticle
+import database as db
 from logger import setup_logger
 
 
 logger = setup_logger(__name__)
+
+
+LIMIT = 15
 
 
 def handle_message(self, user, update):
@@ -12,53 +16,80 @@ def handle_message(self, user, update):
 def handle_inline_query(self, user, update):
     query_id = update["inline_query"]["id"]
     query_text = update["inline_query"]["query"]  # This is what the user searched for
+    offset = int(update["inline_query"]["offset"])
 
-    # Prepare hard-coded GIFs (either file_ids or URLs)
-    gifs = [
-        {
-            'id': '1',
-            'file_id': 'CgACAgIAAxkBAAMJZxLYPO2jcqzPIsUS__WwYP-C4FIAAjdLAAJr2CFLtbOoO_H9ma02BA',
-            'title': 'дінаху',
-            'description': 'гіф дінаху',
-        },
-        {
-            'id': '2',
-            'file_id': 'CgACAgIAAxkBAAMfZxP8Tp382lblvaDlfWLjrriI_ycAAkYpAALIfVBKWoBbTrFxnVk2BA',  # Use a Telegram file_id if uploaded
-            'title': 'розумний дофіга да',
-            'description': 'гіф розумний дофіга да',
-        },
-        {
-            'id': '3',
-            'file_id': 'CgACAgIAAxkBAAMhZxP8ZAvOYE7lMbqj293TgUOSJsQAAj8sAAJlvdBLhJAV8AABeuRVNgQ',  # Use a Telegram file_id if uploaded
-            'title': 'питання відсутні',
-            'description': 'гіф питання відсутні',
-        }
-    ]
+    fetched, total = db.Media.search_by_description(user, query_text, limit=LIMIT, offset=offset)
+    next_offset = offset + LIMIT
+    if next_offset > total:
+        next_offset = ""
+    else:
+        next_offset = str(next_offset)
 
-    # Prepare results for the inline query response
-    results = []
-    for gif in gifs:
-        results.append(InlineQueryResultCachedGif(
-            id=gif['id'],  # Unique identifier for this result
-            gif_file_id=gif['file_id'],  # The file_id of the GIF
-            title=gif['title'],  # Title of the GIF
-            description=gif['description'],  # Description of the GIF
-        ))
+    if not fetched:
+        self.answerInlineQuery(
+            query_id,
+            switch_pm_text="No media found. Click to add",
+            switch_pm_parameter="default"
+        )
+    else:
+        results = []
 
-    results.append(InlineQueryResultArticle(
-        id='text_1',  # Unique identifier for the text result
-        title='Some Info',  # Title of the text result
-        input_message_content=InputTextMessageContent(
-            message_text='This is a separate text result that provides additional information or context.'
-        ),
-        description='This text is for context and does not include any media.'
-    ))
+        for element in fetched:
+            user_id, media_type, file_id, caption, media_id, description = element
 
-    logger.debug("Results: %s", results)
-    # Send the results back to Telegram
-    self.answerInlineQuery(
-        query_id,
-        results,
-        switch_pm_text="No media found. Click to add",
-        switch_pm_parameter="default"
-    )
+            match media_type:
+                case "gif":
+                    results.append(InlineQueryResultCachedGif(
+                        id=str(media_id),
+                        gif_file_id=file_id,
+                        title=description,
+                        caption=caption
+                    ))
+                case "audio":
+                    results.append(InlineQueryResultCachedAudio(
+                        id=str(media_id),
+                        audio_file_id=file_id,
+                        title=description,
+                        caption=caption
+                    ))
+                case "document":
+                    results.append(InlineQueryResultCachedDocument(
+                        id=str(media_id),
+                        document_file_id=file_id,
+                        title=description,
+                        caption=caption
+                    ))
+                case "photo":
+                    results.append(InlineQueryResultCachedPhoto(
+                        id=str(media_id),
+                        photo_file_id=file_id,
+                        title=description,
+                        caption=caption
+                    ))
+                case "sticker":
+                    results.append(InlineQueryResultCachedSticker(
+                        id=str(media_id),
+                        sticker_file_id=file_id,
+                        title=description,
+                    ))
+                case "video":
+                    results.append(InlineQueryResultCachedVideo(
+                        id=str(media_id),
+                        video_file_id=file_id,
+                        title=description,
+                        caption=caption
+                    ))
+                case "voice":
+                    results.append(InlineQueryResultCachedVoice(
+                        id=str(media_id),
+                        voice_file_id=file_id,
+                        title=description,
+                        caption=caption
+                    ))
+
+        self.answerInlineQuery(
+            query_id,
+            results,
+            next_offset=next_offset,
+            is_personal=True
+        )
