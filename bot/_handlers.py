@@ -11,11 +11,69 @@ CACHETIME = 0
 
 
 def handle_message(self, user, update):
+    message = update.get("message", {})
     if "text" in update["message"]:
-        text = update["message"]["text"]
-        self.deliver_message(user, "From the web: you said '{}'".format(text))
+        match db.Temp.get({"user_id": user, "key": "status"}):
+            case "description":
+                media_type = db.Temp.get({"user_id": user, "key": "media_type"}, include_column_names=True)["value"]
+                file_id = db.Temp.get({"user_id": user, "key": "file_id"}, include_column_names=True)["value"]
+                caption = db.Temp.get({"user_id": user, "key": "caption"}, include_column_names=True).get("value", None)
+                description = update["message"]["text"]
+
+                db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description, "caption": caption})
+                self.deliver_message(user, "Successfully added")
+            case _:
+                media_type = "article"  # Treat as article for text
+                file_id = update["message"]["text"]
+                db.Temp.add({"user_id": user, "key": "media_type", "value": media_type})
+                db.Temp.add({"user_id": user, "key": "file_id", "value": file_id})
+                db.Temp.add({"user_id": user, "key": "status", "value": "description"})
+                self.deliver_message(user, "Please provide a description for this media.")
+
+    elif any(media_type in message for media_type in ["photo", "document", "audio", "voice", "video", "sticker", "animation"]):
+        self.media_input_handler(user, update)
     else:
         self.deliver_message(user, "From the web: sorry, I didn't understand that kind of message")
+
+
+def media_input_handler(self, user, update):
+    message = update.get('message', {})
+    caption = message.get('caption', None)
+
+    if "photo" in update["message"]:
+        media_type = "photo"
+        file_id = update["message"]["photo"][-1]["file_id"]  # selects file_id of the largest photo version (last one)
+
+    elif "document" in update["message"]:
+        media_type = "document"
+        file_id = update["message"]["document"]["file_id"]
+
+    elif "audio" in update["message"]:
+        media_type = "audio"
+        file_id = update["message"]["audio"]["file_id"]
+
+    elif "voice" in update["message"]:
+        media_type = "voice"
+        file_id = update["message"]["voice"]["file_id"]
+
+    elif "video" in update["message"]:
+        media_type = "video"
+        file_id = update["message"]["video"]["file_id"]
+
+    elif "sticker" in update["message"]:
+        media_type = "sticker"
+        file_id = update["message"]["sticker"]["file_id"]
+
+    elif "animation" in update["message"]:  # GIFs are sent as animations
+        media_type = "gif"
+        file_id = update["message"]["animation"]["file_id"]
+
+    db.Temp.add({"user_id": user, "key": "media_type", "value": media_type})
+    db.Temp.add({"user_id": user, "key": "file_id", "value": file_id})
+    db.Temp.add({"user_id": user, "key": "status", "value": "description"})
+    if caption:
+        db.Temp.add({"user_id": user, "key": "caption", "value": caption})
+    self.deliver_message(user, "Please provide a description for this media.")
 
 
 def handle_inline_query(self, user, update):
