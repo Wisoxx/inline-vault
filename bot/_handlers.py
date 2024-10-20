@@ -13,7 +13,7 @@ CACHETIME = 0
 def handle_message(self, user, update):
     message = update.get("message", {})
     if "text" in update["message"]:
-        match db.Temp.get({"user_id": user, "key": "status"}):
+        match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):
             case "description":
                 media_type = db.Temp.get({"user_id": user, "key": "media_type"}, include_column_names=True)["value"]
                 file_id = db.Temp.get({"user_id": user, "key": "file_id"}, include_column_names=True)["value"]
