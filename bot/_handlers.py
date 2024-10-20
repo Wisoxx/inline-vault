@@ -16,7 +16,8 @@ def handle_message(self, user, update):
 def handle_inline_query(self, user, update):
     query_id = update["inline_query"]["id"]
     query_text = update["inline_query"]["query"]  # This is what the user searched for
-    offset = int(update["inline_query"]["offset"])
+    offset = update["inline_query"]["offset"]
+    offset = int(offset) if offset != "" else 0
 
     fetched, total = db.Media.search_by_description(user, query_text, limit=LIMIT, offset=offset)
     next_offset = offset + LIMIT
