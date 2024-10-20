@@ -188,6 +188,9 @@ class Database:
         if include_column_names:
             rows = [{cls.columns[i]: row[i] for i in range(len(row))} for row in rows]
 
+            if not rows:
+                return {}
+
         if len(rows) == 1:  # return as tuple instead of list of tuples
             return rows[0]
 
