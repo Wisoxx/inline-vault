@@ -1,4 +1,4 @@
-from telepot.namedtuple import InlineQueryResultCachedAudio, InlineQueryResultCachedDocument, InlineQueryResultCachedGif, InlineQueryResultCachedPhoto, InlineQueryResultCachedSticker, InlineQueryResultCachedVideo, InlineQueryResultCachedVoice, InlineQueryResultArticle
+from telepot.namedtuple import InlineQueryResultCachedAudio, InlineQueryResultCachedDocument, InlineQueryResultCachedGif, InlineQueryResultCachedPhoto, InlineQueryResultCachedSticker, InlineQueryResultCachedVideo, InlineQueryResultCachedVoice, InlineQueryResultArticle, InputTextMessageContent
 import database as db
 from logger import setup_logger
 
@@ -11,7 +11,11 @@ CACHETIME = 0
 
 
 def handle_message(self, user, update):
-    pass
+    if "text" in update["message"]:
+        text = update["message"]["text"]
+        self.deliver_message(user, "From the web: you said '{}'".format(text))
+    else:
+        self.deliver_message(user, "From the web: sorry, I didn't understand that kind of message")
 
 
 def handle_inline_query(self, user, update):
@@ -88,6 +92,16 @@ def handle_inline_query(self, user, update):
                         voice_file_id=file_id,
                         title=description,
                         caption=caption
+                    ))
+
+                case "article":
+                    results.append(InlineQueryResultArticle(
+                        id=str(media_id),
+                        title='Text',
+                        input_message_content=InputTextMessageContent(
+                            message_text=description
+                        ),
+                        description=description
                     ))
 
         self.answerInlineQuery(

@@ -55,11 +55,7 @@ class Bot:
             user = self.get_user(update)
 
             if "message" in update:
-                if "text" in update["message"]:
-                    text = update["message"]["text"]
-                    self.deliver_message(user, "From the web: you said '{}'".format(text))
-                else:
-                    self.deliver_message(user, "From the web: sorry, I didn't understand that kind of message")
+                self.handle_message(user, update)
 
             elif "inline_query" in update:
                 self.handle_inline_query(user, update)
