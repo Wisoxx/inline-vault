@@ -7,6 +7,7 @@ logger = setup_logger(__name__)
 
 
 LIMIT = 15
+CACHETIME = 0
 
 
 def handle_message(self, user, update):
@@ -93,5 +94,6 @@ def handle_inline_query(self, user, update):
             query_id,
             results,
             next_offset=next_offset,
-            is_personal=True
+            is_personal=True,
+            cache_time=CACHETIME
         )
