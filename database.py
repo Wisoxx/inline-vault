@@ -39,6 +39,7 @@ class Database:
         connection = cls.connection
         cursor = connection.cursor()
 
+        retry = False
         attempt = 0
         while attempt < MAX_RETRIES:
             # execute query
@@ -65,6 +66,7 @@ class Database:
                     logger.warning(f"Database is locked, retrying... Attempt {attempt + 1}/{MAX_RETRIES}")
                     time.sleep(INITIAL_DELAY * (2 ** attempt))
                     attempt += 1
+                    retry = True
                     continue
 
                 elif "no such table" in error_message and not retrying:
@@ -91,7 +93,9 @@ class Database:
                 return -1  # Handle other database errors
 
             finally:
-                cursor.close()
+                if not retry:
+                    cursor.close()
+                retry = False
 
         logger.error(f"Max retries exceeded")
         return -1  # Return -1 if all retries fail
