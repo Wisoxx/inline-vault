@@ -46,6 +46,10 @@ def media_input_handler(self, user, update):
         media_type = "photo"
         file_id = update["message"]["photo"][-1]["file_id"]  # selects file_id of the largest photo version (last one)
 
+    elif "animation" in update["message"]:  # GIFs are sent as animations
+        media_type = "gif"
+        file_id = update["message"]["animation"]["file_id"]
+
     elif "document" in update["message"]:
         media_type = "document"
         file_id = update["message"]["document"]["file_id"]
@@ -65,10 +69,6 @@ def media_input_handler(self, user, update):
     elif "sticker" in update["message"]:
         media_type = "sticker"
         file_id = update["message"]["sticker"]["file_id"]
-
-    elif "animation" in update["message"]:  # GIFs are sent as animations
-        media_type = "gif"
-        file_id = update["message"]["animation"]["file_id"]
 
     db.Temp.add({"user_id": user, "key": "media_type", "value": media_type})
     db.Temp.add({"user_id": user, "key": "file_id", "value": file_id})
