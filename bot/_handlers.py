@@ -46,8 +46,7 @@ def handle_text_input(self, user, update):
                           "caption": caption})[0]:
                 self.deliver_message(user, "Successfully added")
             else:
-                reply_id = update["message_id"]
-                self.deliver_message(user, "You already have that in your collection", reply_to_msg_id=reply_id)
+                self.deliver_message(user, "You already have that in your collection")
 
             db.Temp.delete({"user_id": user})  # cleanup
 
@@ -58,8 +57,7 @@ def handle_text_input(self, user, update):
             if db.Media.delete({"user_id": user, "file_id": text}):
                 self.deliver_message(user, "Successfully deleted. Send next or /done to stop")
             else:
-                reply_id = update["message_id"]
-                self.deliver_message(user, "That media was not found in your collection", reply_to_msg_id=reply_id)
+                self.deliver_message(user, "That media was not found in your collection")
 
         case _:
             raise ValueError("Unsupported status")
@@ -79,8 +77,7 @@ def media_input_handler(self, user, update):
             if db.Media.delete({"user_id": user, "file_id": file_id}):
                 self.deliver_message(user, "Successfully deleted. Send next or /done to stop")
             else:
-                reply_id = update["message"]["message_id"]
-                self.deliver_message(user, "That media was not found in your collection", reply_to_msg_id=reply_id)
+                self.deliver_message(user, "That media was not found in your collection")
 
         case _:
             raise ValueError("Unsupported status")
