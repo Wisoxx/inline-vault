@@ -20,10 +20,9 @@ def handle_message(self, user, lang, update):
         # commands have bigger priority than other input
         if text.startswith("/start") or text.startswith("/help"):
             username = update["message"]["from"]["username"]
-            bot_username = "@inlinevaultbot"
             keyboard = InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [InlineKeyboardButton(text=translate(lang, "try"), switch_inline_query=bot_username)]
+                    [InlineKeyboardButton(text=translate(lang, "try"), switch_inline_query_current_chat="")]
                 ]
             )
             if db.Users.add({"user_id": user, "username": username})[0]:
