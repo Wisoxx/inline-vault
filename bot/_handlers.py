@@ -17,7 +17,7 @@ def handle_message(self, user, lang, update):
     if "text" in update["message"]:
         text = update["message"]["text"]
         # commands have bigger priority than other input
-        if text.startswith("/start"):
+        if text.startswith("/start") or text.startswith("/help"):
             username = update["message"]["from"]["username"]
             if db.Users.add({"user_id": user, "username": username})[0]:
                 logger.info(f"New user added: {username}")

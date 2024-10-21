@@ -1,7 +1,7 @@
 def translate(lang: str, key: str, values: dict = None):
     translations = {
         'en': {
-            'start': 'Hi. I will be the one keeping your media safe and always available.',
+            'start': 'Hi. I will be the one keeping your media safe and always available\n\nYou can send media via simply by writing @inlinevaultbot inside your text field.\nTo add new media firstly, just send it to me, then send me description/tags you want to use to find that media. If you want to delete something, send /delete and then send everything you want to delete',
             'delete': 'Now send me all the media you want to delete. Send /cancel to cancel',
             'cancelled': 'Successfully canceled',
             'finish deleting': 'Done deleting',
@@ -29,7 +29,7 @@ def translate(lang: str, key: str, values: dict = None):
             'open': 'Натисни тут, щоб відкрити чат з ботом'
         },
         'pl': {
-            'start': 'Cześć. Będę czuwać nad bezpieczeństwem twoich mediów i ich ciągłą dostępnością.',
+            'start': 'Cześć. Będę czuwać nad bezpieczeństwem twoich mediów i ich ciągłą dostępnością',
             'delete': 'Teraz wyślij mi wszystkie media, które chcesz usunąć. Wyślij /cancel, żeby anulować',
             'cancelled': 'Pomyślnie anulowano',
             'finish deleting': 'Usuwanie zakończono',
