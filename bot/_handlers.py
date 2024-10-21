@@ -63,7 +63,7 @@ def media_input_handler(self, user, update):
 
     match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):
         case None:
-            self.handle_new_media_input(user, update, media_type, file_id, caption)
+            self.handle_new_media_input(user, media_type, file_id, caption)
 
         case "delete":
             db.Media.delete({"user_id": user, "media_type": media_type, "file_id": file_id})
