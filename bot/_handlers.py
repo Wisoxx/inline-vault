@@ -1,6 +1,7 @@
 from telepot.namedtuple import InlineQueryResultCachedAudio, InlineQueryResultCachedDocument, InlineQueryResultCachedGif, InlineQueryResultCachedPhoto, InlineQueryResultCachedSticker, InlineQueryResultCachedVideo, InlineQueryResultCachedVoice, InlineQueryResultArticle, InputTextMessageContent
 import database as db
 from logger import setup_logger
+import string
 
 
 logger = setup_logger(__name__)
@@ -44,7 +45,7 @@ def handle_text_input(self, user, update):
             media_type = db.Temp.get({"user_id": user, "key": "media_type"}, include_column_names=True)["value"]
             file_id = db.Temp.get({"user_id": user, "key": "file_id"}, include_column_names=True)["value"]
             caption = db.Temp.get({"user_id": user, "key": "caption"}, include_column_names=True).get("value", None)
-            description = text
+            description = normalize_text(text)
 
             if db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description,
                           "caption": caption})[0]:
@@ -136,7 +137,7 @@ def handle_new_media_input(self, user, media_type, file_id, caption=None):
 
 def handle_inline_query(self, user, update):
     query_id = update["inline_query"]["id"]
-    query_text = update["inline_query"]["query"]  # This is what the user searched for
+    query_text = normalize_text(["inline_query"]["query"])
     offset = update["inline_query"]["offset"]
     offset = int(offset) if offset != "" else 0
 
@@ -231,3 +232,11 @@ def handle_inline_query(self, user, update):
             switch_pm_text="Click here to open bot's chat",
             switch_pm_parameter="default"
         )
+
+
+def normalize_text(text):
+    text = text.lower()
+    text = text.translate(str.maketrans("", "", string.punctuation))  # remove punctuation
+    text = text.strip()  # trim whitespace
+    text = ' '.join(text.split())  # remove extra whitespace
+    return text
