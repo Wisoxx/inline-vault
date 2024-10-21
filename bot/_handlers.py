@@ -116,7 +116,7 @@ def handle_new_media_input(self, user, media_type, file_id, caption=None):
     if caption:
         data.append({"user_id": user, "key": "caption", "value": caption})
 
-    db.Temp.add(data)
+    db.Temp.add_bulk(data)
     self.deliver_message(user, "Please provide a description for this media.")
 
 

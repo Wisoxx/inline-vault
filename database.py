@@ -119,7 +119,34 @@ class Database:
         cls.execute_query(cls.create_table_query)
 
     @classmethod
-    def add(cls, data: dict or list[dict], replace: bool = False) -> tuple[bool, int]:
+    def add(cls, data: dict, replace: bool = False) -> tuple[bool, int]:
+        """
+        Inserts a new record into the table. Column names and values are passed as a
+        dictionary. Optionally, use "INSERT OR REPLACE" to handle unique constraint
+        conflicts.
+
+        :param data: dict of data to be inserted
+        :param replace: bool whether to replace existing records
+        :return: bool indicating success or failure
+        """
+        if not data:
+            raise ValueError("No data provided for insertion.")
+        cls.validate_columns(data)
+
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join('?' * len(data))
+
+        if replace:
+            query = f"INSERT OR REPLACE INTO {cls.table_name} ({columns}) VALUES ({placeholders})"
+        else:
+            query = f"INSERT INTO {cls.table_name} ({columns}) VALUES ({placeholders})"
+
+        cursor = cls.execute_query(query, data.values())
+
+        return cursor.rowcount > 0, cursor.lastrowid
+
+    @classmethod
+    def add_bulk(cls, data: dict or list[dict], replace: bool = False) -> tuple[bool, int]:
         """
         Inserts a new record into the table. Column names and values are passed as a
         dictionary. Optionally, use "INSERT OR REPLACE" to handle unique constraint
@@ -150,7 +177,7 @@ class Database:
 
         cursor = cls.execute_query(query, values, multiple=True)
 
-        return cursor.rowcount > 0, cursor.lastrowid
+        return cursor.rowcount > 0
 
     @classmethod
     def get(cls, conditions: dict = None, limit: int = None, offset: int = None,
