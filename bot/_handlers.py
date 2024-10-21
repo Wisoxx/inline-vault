@@ -19,7 +19,11 @@ def handle_message(self, user, lang, update):
         text = update["message"]["text"]
         # commands have bigger priority than other input
         if text.startswith("/start") or text.startswith("/help"):
-            username = update["message"]["from"]["username"]
+            username = update.get("message", {}).get("from", {}).get("username", None)
+            if not username:
+                first_name = update.get("message", {}).get("from", {}).get("first_name", "")
+                last_name = update.get("message", {}).get("from", {}).get("last_name", "")
+                username = first_name.lower() + "_" + last_name.lower()
             keyboard = InlineKeyboardMarkup(
                 inline_keyboard=[
                     [InlineKeyboardButton(text=translate(lang, "try"), switch_inline_query_current_chat="")]
@@ -75,7 +79,7 @@ def handle_text_input(self, user, lang, update):
         case "delete":
             if db.Media.delete({"user_id": user, "file_id": text}):
                 self.deliver_message(user, translate(lang, "deleted"))
-                logger.log(f"User {user} deleted {text}")
+                logger.info(f"User {user} deleted {text}")
             else:
                 self.deliver_message(user, translate(lang, "not found"))
 

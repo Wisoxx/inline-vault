@@ -1,7 +1,7 @@
 import database as db
 import telepot
-from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from logger import setup_logger
+from translations import translate
 import json
 
 
@@ -51,6 +51,7 @@ class Bot:
 
     def handle_update(self, update):
         user = None
+        lang = None
         try:
             logger.debug('Received update: {}'.format(json.dumps(update, indent=4)))  # pretty print logs
 
@@ -64,6 +65,7 @@ class Bot:
 
         except Exception as e:
             logger.critical(f"Couldn't process update: {e}", exc_info=True)
+            logger.critical(f"Update that caused error: {json.dumps(update, indent=4)}")
 
-            if user:
-                self.deliver_message(user, "Something went wrong")
+            if user and lang:
+                self.deliver_message(user, translate(lang, "error"))

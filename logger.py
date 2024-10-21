@@ -17,7 +17,7 @@ def setup_logger(name):
     console_handler.setFormatter(console_formatter)
 
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     if logger.hasHandlers():
         logger.handlers.clear()
