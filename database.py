@@ -33,7 +33,7 @@ class Database:
     connection = Connection('data.db', timeout=5)
 
     @classmethod
-    def execute_query(cls, query: str, params: list or tuple = (), retrying: bool = False):
+    def execute_query(cls, query: str, params: list or tuple = (), multiple: bool = False, retrying: bool = False):
         """Executes a given SQLite query with optional parameters. Returns number of affected rows or fetched data"""
         logger.debug(f"Executing query: {query, params}")
         connection = cls.connection
@@ -45,8 +45,14 @@ class Database:
             # execute query
             try:
                 if params:
-                    cursor.execute(query, tuple(params))
+                    if multiple:
+                        logger.debug("Executing multiple")
+                        cursor.executemany(query, params)
+                    else:
+                        logger.debug("Executing single")
+                        cursor.execute(query, tuple(params))
                 else:
+                    logger.debug("Executing with no parameters")
                     cursor.execute(query)
 
                 if not query.strip().upper().startswith("SELECT"):
@@ -79,7 +85,7 @@ class Database:
                         return -1
 
                     # Retry the original query after creating the table
-                    return cls.execute_query(query, params, retrying=True)
+                    return cls.execute_query(query, params, multiple, retrying=True)
 
                 else:
                     logger.exception(f"OperationalError: {error_message}")
@@ -113,7 +119,7 @@ class Database:
         cls.execute_query(cls.create_table_query)
 
     @classmethod
-    def add(cls, data: dict, replace: bool = False) -> tuple[bool, int]:
+    def add(cls, data: dict or list[dict], replace: bool = False) -> tuple[bool, int]:
         """
         Inserts a new record into the table. Column names and values are passed as a
         dictionary. Optionally, use "INSERT OR REPLACE" to handle unique constraint
@@ -125,17 +131,24 @@ class Database:
         """
         if not data:
             raise ValueError("No data provided for insertion.")
-        cls.validate_columns(data)
 
-        columns = ', '.join(data.keys())
-        placeholders = ', '.join('?' * len(data))
+        if isinstance(data, dict):
+            data = [data]  # Convert single dict to list for consistency
+
+        values = []
+        for row in data:
+            cls.validate_columns(row)
+            values.append(tuple(row.values()))
+
+        columns = ', '.join(data[0].keys())  # assuming all rows have the same structure
+        placeholders = ', '.join('?' * len(data[0]))
 
         if replace:
             query = f"INSERT OR REPLACE INTO {cls.table_name} ({columns}) VALUES ({placeholders})"
         else:
             query = f"INSERT INTO {cls.table_name} ({columns}) VALUES ({placeholders})"
 
-        cursor = cls.execute_query(query, data.values())
+        cursor = cls.execute_query(query, values, multiple=True)
 
         return cursor.rowcount > 0, cursor.lastrowid
 
@@ -427,5 +440,5 @@ class Temp(Database):
     """
 
     @classmethod
-    def add(cls, data: dict, replace: bool = True) -> tuple[bool, int]:
+    def add(cls, data: dict or list[dict], replace: bool = True) -> tuple[bool, int]:
         return super().add(data, replace=replace)

@@ -6,31 +6,23 @@ from logger import setup_logger
 logger = setup_logger(__name__)
 
 
-LIMIT = 15
+LIMIT = 25
 CACHETIME = 0
 
 
 def handle_message(self, user, update):
     message = update.get("message", {})
     if "text" in update["message"]:
-        match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):
-            case "description":
-                media_type = db.Temp.get({"user_id": user, "key": "media_type"}, include_column_names=True)["value"]
-                file_id = db.Temp.get({"user_id": user, "key": "file_id"}, include_column_names=True)["value"]
-                caption = db.Temp.get({"user_id": user, "key": "caption"}, include_column_names=True).get("value", None)
-                description = update["message"]["text"]
-
-                db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description, "caption": caption})
-                self.deliver_message(user, "Successfully added")
-
-                db.Temp.delete({"user_id": user})  # cleanup
+        text = update["message"]["text"]
+        match text:  # commands have bigger priority than other input
+            case "/delete":
+                self.deliver_message(user, "Now send me all the media you want to delete. Send /cancel to cancel")
+            case "/cancel":
+                self.deliver_message(user, "Successfully canceled.")
+            case "/done":
+                self.deliver_message(user, "Done deleting.")
             case _:
-                media_type = "article"  # Treat as article for text
-                file_id = update["message"]["text"]
-                db.Temp.add({"user_id": user, "key": "media_type", "value": media_type})
-                db.Temp.add({"user_id": user, "key": "file_id", "value": file_id})
-                db.Temp.add({"user_id": user, "key": "status", "value": "description"})
-                self.deliver_message(user, "Please provide a description for this media.")
+                self.handle_text_input(user, text)
 
     elif any(media_type in message for media_type in ["photo", "document", "audio", "voice", "video", "sticker", "animation"]):
         self.media_input_handler(user, update)
@@ -38,43 +30,93 @@ def handle_message(self, user, update):
         self.deliver_message(user, "From the web: sorry, I didn't understand that kind of message")
 
 
+def handle_text_input(self, user, text):
+    match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):  # status
+        case "description":
+            media_type = db.Temp.get({"user_id": user, "key": "media_type"}, include_column_names=True)["value"]
+            file_id = db.Temp.get({"user_id": user, "key": "file_id"}, include_column_names=True)["value"]
+            caption = db.Temp.get({"user_id": user, "key": "caption"}, include_column_names=True).get("value", None)
+            description = text
+
+            db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description,
+                          "caption": caption})
+            self.deliver_message(user, "Successfully added")
+
+            db.Temp.delete({"user_id": user})  # cleanup
+
+        case None:
+            self.handle_new_media_input(user, media_type="article", file_id=text)
+
+        case "delete":
+            db.Media.delete({"user_id": user, "media_type": "article", "file_id": text})
+            self.deliver_message(user, "Successfully deleted. Send next or /done to stop")
+
+        case _:
+            raise ValueError("Unsupported status")
+
+
 def media_input_handler(self, user, update):
     message = update.get('message', {})
     caption = message.get('caption', None)
 
-    if "photo" in update["message"]:
+    media_type, file_id = extract_media_info(message)
+
+    match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):
+        case None:
+            self.handle_new_media_input(user, update, media_type, file_id, caption)
+
+        case "delete":
+            db.Media.delete({"user_id": user, "media_type": media_type, "file_id": file_id})
+            self.deliver_message(user, "Successfully deleted. Send next or /done to stop")
+
+        case _:
+            raise ValueError("Unsupported status")
+
+
+def extract_media_info(message):
+    if "photo" in message:
         media_type = "photo"
-        file_id = update["message"]["photo"][-1]["file_id"]  # selects file_id of the largest photo version (last one)
+        file_id = message["photo"][-1]["file_id"]  # selects file_id of the largest photo version (last one)
 
-    elif "animation" in update["message"]:  # GIFs are sent as animations
+    elif "animation" in message:  # GIFs are sent as animations
         media_type = "gif"
-        file_id = update["message"]["animation"]["file_id"]
+        file_id = message["animation"]["file_id"]
 
-    elif "document" in update["message"]:
+    elif "document" in message:
         media_type = "document"
-        file_id = update["message"]["document"]["file_id"]
+        file_id = message["document"]["file_id"]
 
-    elif "audio" in update["message"]:
+    elif "audio" in message:
         media_type = "audio"
-        file_id = update["message"]["audio"]["file_id"]
+        file_id = message["audio"]["file_id"]
 
-    elif "voice" in update["message"]:
+    elif "voice" in message:
         media_type = "voice"
-        file_id = update["message"]["voice"]["file_id"]
+        file_id = message["voice"]["file_id"]
 
-    elif "video" in update["message"]:
+    elif "video" in message:
         media_type = "video"
-        file_id = update["message"]["video"]["file_id"]
+        file_id = message["video"]["file_id"]
 
-    elif "sticker" in update["message"]:
+    elif "sticker" in message:
         media_type = "sticker"
-        file_id = update["message"]["sticker"]["file_id"]
+        file_id = message["sticker"]["file_id"]
 
-    db.Temp.add({"user_id": user, "key": "media_type", "value": media_type})
-    db.Temp.add({"user_id": user, "key": "file_id", "value": file_id})
-    db.Temp.add({"user_id": user, "key": "status", "value": "description"})
+    else:
+        return None, None
+
+    return media_type, file_id
+
+
+def handle_new_media_input(self, user, media_type, file_id, caption=None):
+    data = [{"user_id": user, "key": "media_type", "value": media_type},
+            {"user_id": user, "key": "file_id", "value": file_id},
+            {"user_id": user, "key": "status", "value": "description"}]  # set status to description
+
     if caption:
-        db.Temp.add({"user_id": user, "key": "caption", "value": caption})
+        data.append({"user_id": user, "key": "caption", "value": caption})
+
+    db.Temp.add(data)
     self.deliver_message(user, "Please provide a description for this media.")
 
 
