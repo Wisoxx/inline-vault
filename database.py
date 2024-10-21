@@ -25,6 +25,39 @@ class Connection:
         return getattr(self.connection, name)
 
 
+class CursorError:
+    def __init__(self):
+        self.rowcount = -1
+        self.lastrowid = 0
+        self.arraysize = 0
+        self.description = None
+        self.connection = None
+
+    def execute(self, sql, parameters=()):
+        pass
+
+    def executemany(self, sql, parameters):
+        pass
+
+    def fetchone(self):
+        return None
+
+    def fetchmany(self, size=None):
+        return []
+
+    def fetchall(self):
+        return []
+
+    def close(self):
+        pass
+
+    def setinputsizes(self, sizes):
+        pass
+
+    def setoutputsize(self, size, column=None):
+        pass
+
+
 class Database:
     table_name = ""
     create_table_query = ""
@@ -82,7 +115,7 @@ class Database:
                         logger.info("Table created successfully. Retrying the original query...")
                     except sqlite3.Error as create_e:
                         logger.critical(f"Failed to create table: {create_e}", exc_info=True)
-                        return -1
+                        return CursorError()
 
                     # Retry the original query after creating the table
                     return cls.execute_query(query, params, multiple, retrying=True)
@@ -92,11 +125,11 @@ class Database:
 
             except sqlite3.IntegrityError as e:
                 logger.warning(f"IntegrityError: {str(e)}")
-                return -1  # Handle duplicate entries and other integrity issues
+                return CursorError()  # Handle duplicate entries and other integrity issues
 
             except sqlite3.DatabaseError as e:
                 logger.critical(f"DatabaseError: {str(e)}", exc_info=True)
-                return -1  # Handle other database errors
+                return CursorError()  # Handle other database errors
 
             finally:
                 if not retry:
@@ -104,7 +137,7 @@ class Database:
                 retry = False
 
         logger.error(f"Max retries exceeded")
-        return -1  # Return -1 if all retries fail
+        return CursorError()
 
     @classmethod
     def validate_columns(cls, conditions: dict or list or tuple) -> None:
