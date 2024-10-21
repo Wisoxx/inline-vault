@@ -16,10 +16,13 @@ def handle_message(self, user, update):
         text = update["message"]["text"]
         match text:  # commands have bigger priority than other input
             case "/delete":
+                db.Temp.add({"user_id": user, "key": "status", "value": "delete"})
                 self.deliver_message(user, "Now send me all the media you want to delete. Send /cancel to cancel")
             case "/cancel":
+                db.Temp.delete({"user_id": user})
                 self.deliver_message(user, "Successfully canceled.")
             case "/done":
+                db.Temp.delete({"user_id": user})
                 self.deliver_message(user, "Done deleting.")
             case _:
                 self.handle_text_input(user, text)

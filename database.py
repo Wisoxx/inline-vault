@@ -469,3 +469,7 @@ class Temp(Database):
     @classmethod
     def add(cls, data: dict or list[dict], replace: bool = True) -> tuple[bool, int]:
         return super().add(data, replace=replace)
+
+    @classmethod
+    def add_bulk(cls, data: dict or list[dict], replace: bool = True) -> tuple[bool, int]:
+        return super().add_bulk(data, replace=replace)
