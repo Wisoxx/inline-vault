@@ -31,12 +31,15 @@ def handle_message(self, user, lang, update):
         elif text.startswith("/delete"):
             db.Temp.add({"user_id": user, "key": "status", "value": "delete"})
             self.deliver_message(user, translate(lang, "delete"))
+            logger.debug(f"User {user} changed status to delete")
         elif text.startswith("/cancel"):
             db.Temp.delete({"user_id": user})
             self.deliver_message(user, translate(lang, "cancelled"))
+            logger.debug(f"User {user} cleared temp")
         elif text.startswith("/done"):
             db.Temp.delete({"user_id": user})
             self.deliver_message(user, translate(lang, "finish deleting"))
+            logger.debug(f"User {user} cleared temp")
         else:
             self.handle_text_input(user, lang, update)
 
@@ -44,6 +47,7 @@ def handle_message(self, user, lang, update):
         self.media_input_handler(user, lang, update)
     else:
         self.deliver_message(user, translate(lang, "not recognized"))
+        logger.warning(f"Couldn't recognize update: {update}")
 
 
 def handle_text_input(self, user, lang, update):
@@ -58,10 +62,12 @@ def handle_text_input(self, user, lang, update):
             if db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description,
                           "caption": caption})[0]:
                 self.deliver_message(user, translate(lang, "added"))
+                logger.info(f"User {user} added: {file_id}")
             else:
                 self.deliver_message(user, translate(lang, "duplicate"))
 
             db.Temp.delete({"user_id": user})  # cleanup
+            logger.debug(f"User {user} cleared temp")
 
         case None:
             self.handle_new_media_input(user, lang, media_type="article", file_id=text)
@@ -69,6 +75,7 @@ def handle_text_input(self, user, lang, update):
         case "delete":
             if db.Media.delete({"user_id": user, "file_id": text}):
                 self.deliver_message(user, translate(lang, "deleted"))
+                logger.log(f"User {user} deleted {text}")
             else:
                 self.deliver_message(user, translate(lang, "not found"))
 
@@ -89,6 +96,7 @@ def media_input_handler(self, user, lang, update):
         case "delete":
             if db.Media.delete({"user_id": user, "file_id": file_id}):
                 self.deliver_message(user, translate(lang, "deleted"))
+                logger.log(f"User {user} deleted {file_id}")
             else:
                 self.deliver_message(user, translate(lang, "not found"))
 
@@ -140,6 +148,8 @@ def handle_new_media_input(self, user, lang, media_type, file_id, caption=None):
         data.append({"user_id": user, "key": "caption", "value": caption})
 
     db.Temp.add_bulk(data)
+    logger.debug(f"User {user} sent: media_type={media_type}, file_id={file_id}")
+    logger.debug(f"User {user} changed status to description")
     self.deliver_message(user, translate(lang, "describe"))
 
 
