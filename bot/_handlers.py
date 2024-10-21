@@ -19,8 +19,8 @@ def handle_message(self, user, lang, update):
         # commands have bigger priority than other input
         if text.startswith("/start"):
             username = update["message"]["from"]["username"]
-            db.Users.add({"user_id": user, "username": username})
-            logger.info(f"New user added: {username}")
+            if db.Users.add({"user_id": user, "username": username})[0]:
+                logger.info(f"New user added: {username}")
             self.deliver_message(user, translate(lang, "start"))
         elif text.startswith("/delete"):
             db.Temp.add({"user_id": user, "key": "status", "value": "delete"})
