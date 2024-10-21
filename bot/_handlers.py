@@ -72,7 +72,7 @@ def media_input_handler(self, user, update):
     media_type, file_id = extract_media_info(message)
 
     match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):
-        case None:
+        case None | "description":  # media can't be description, so treat it like no status
             self.handle_new_media_input(user, media_type, file_id, caption)
 
         case "delete":
