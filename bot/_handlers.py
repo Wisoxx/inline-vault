@@ -14,18 +14,22 @@ def handle_message(self, user, update):
     message = update.get("message", {})
     if "text" in update["message"]:
         text = update["message"]["text"]
-        match text:  # commands have bigger priority than other input
-            case "/delete":
-                db.Temp.add({"user_id": user, "key": "status", "value": "delete"})
-                self.deliver_message(user, "Now send me all the media you want to delete. Send /cancel to cancel")
-            case "/cancel":
-                db.Temp.delete({"user_id": user})
-                self.deliver_message(user, "Successfully canceled.")
-            case "/done":
-                db.Temp.delete({"user_id": user})
-                self.deliver_message(user, "Done deleting.")
-            case _:
-                self.handle_text_input(user, update)
+        # commands have bigger priority than other input
+        if text.startswith("/start"):
+            username = update["message"]["from"]["username"]
+            db.Users.add({"user_id": user, "username": username})
+            self.deliver_message(user, "Hi. I will be the one keeping your media safe and always available.")
+        elif text.startswith("/delete"):
+            db.Temp.add({"user_id": user, "key": "status", "value": "delete"})
+            self.deliver_message(user, "Now send me all the media you want to delete. Send /cancel to cancel")
+        elif text.startswith("/cancel"):
+            db.Temp.delete({"user_id": user})
+            self.deliver_message(user, "Successfully canceled.")
+        elif text.startswith("/done"):
+            db.Temp.delete({"user_id": user})
+            self.deliver_message(user, "Done deleting.")
+        else:
+            self.handle_text_input(user, update)
 
     elif any(media_type in message for media_type in ["photo", "document", "audio", "voice", "video", "sticker", "animation"]):
         self.media_input_handler(user, update)
@@ -127,7 +131,7 @@ def handle_new_media_input(self, user, media_type, file_id, caption=None):
         data.append({"user_id": user, "key": "caption", "value": caption})
 
     db.Temp.add_bulk(data)
-    self.deliver_message(user, "Please provide a description for this media.")
+    self.deliver_message(user, "Please provide a description for this media. Type /cancel to cancel")
 
 
 def handle_inline_query(self, user, update):
@@ -147,7 +151,9 @@ def handle_inline_query(self, user, update):
         self.answerInlineQuery(
             query_id,
             [],
-            switch_pm_text="No media found. Click to add",
+            is_personal=True,
+            cache_time=0,
+            switch_pm_text="No media found. Click here to open bot's chat",
             switch_pm_parameter="default"
         )
     else:
@@ -221,5 +227,7 @@ def handle_inline_query(self, user, update):
             results,
             next_offset=next_offset,
             is_personal=True,
-            cache_time=CACHETIME
+            cache_time=CACHETIME,
+            switch_pm_text="Click here to open bot's chat",
+            switch_pm_parameter="default"
         )
