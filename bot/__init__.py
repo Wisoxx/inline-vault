@@ -40,26 +40,27 @@ class Bot:
     def get_user(self, update):
         if "message" in update:
             user = update["message"]["chat"]["id"]
+            lang = update["message"]["from"]["language_code"]
         elif "inline_query" in update:
             user = update["inline_query"]["from"]["id"]
+            lang = update["inline_query"]["from"]["language_code"]
         else:
             raise KeyError("Couldn't find user")
 
-        return user
+        return user, lang
 
     def handle_update(self, update):
         user = None
         try:
             logger.debug('Received update: {}'.format(json.dumps(update, indent=4)))  # pretty print logs
 
-            user = self.get_user(update)
+            user, lang = self.get_user(update)
 
             if "message" in update:
-                self.handle_message(user, update)
+                self.handle_message(user, lang, update)
 
             elif "inline_query" in update:
-                self.handle_inline_query(user, update)
-                self.deliver_message(user, update["inline_query"]["query"])
+                self.handle_inline_query(user, lang, update)
 
         except Exception as e:
             logger.critical(f"Couldn't process update: {e}", exc_info=True)

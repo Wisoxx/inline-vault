@@ -2,6 +2,7 @@ from telepot.namedtuple import InlineQueryResultCachedAudio, InlineQueryResultCa
 import database as db
 from logger import setup_logger
 import string
+from translations import translate
 
 
 logger = setup_logger(__name__)
@@ -11,7 +12,7 @@ LIMIT = 25
 CACHETIME = 0
 
 
-def handle_message(self, user, update):
+def handle_message(self, user, lang, update):
     message = update.get("message", {})
     if "text" in update["message"]:
         text = update["message"]["text"]
@@ -19,26 +20,27 @@ def handle_message(self, user, update):
         if text.startswith("/start"):
             username = update["message"]["from"]["username"]
             db.Users.add({"user_id": user, "username": username})
-            self.deliver_message(user, "Hi. I will be the one keeping your media safe and always available.")
+            logger.info(f"New user added: {username}")
+            self.deliver_message(user, translate(lang, "start"))
         elif text.startswith("/delete"):
             db.Temp.add({"user_id": user, "key": "status", "value": "delete"})
-            self.deliver_message(user, "Now send me all the media you want to delete. Send /cancel to cancel")
+            self.deliver_message(user, translate(lang, "delete"))
         elif text.startswith("/cancel"):
             db.Temp.delete({"user_id": user})
-            self.deliver_message(user, "Successfully canceled.")
+            self.deliver_message(user, translate(lang, "cancelled"))
         elif text.startswith("/done"):
             db.Temp.delete({"user_id": user})
-            self.deliver_message(user, "Done deleting.")
+            self.deliver_message(user, translate(lang, "finish deleting"))
         else:
-            self.handle_text_input(user, update)
+            self.handle_text_input(user, lang, update)
 
     elif any(media_type in message for media_type in ["photo", "document", "audio", "voice", "video", "sticker", "animation"]):
-        self.media_input_handler(user, update)
+        self.media_input_handler(user, lang, update)
     else:
-        self.deliver_message(user, "From the web: sorry, I didn't understand that kind of message")
+        self.deliver_message(user, translate(lang, "not recognized"))
 
 
-def handle_text_input(self, user, update):
+def handle_text_input(self, user, lang, update):
     text = update["message"]["text"]
     match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):  # status
         case "description":
@@ -49,26 +51,26 @@ def handle_text_input(self, user, update):
 
             if db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description,
                           "caption": caption})[0]:
-                self.deliver_message(user, "Successfully added")
+                self.deliver_message(user, translate(lang, "added"))
             else:
-                self.deliver_message(user, "You already have that in your collection")
+                self.deliver_message(user, translate(lang, "duplicate"))
 
             db.Temp.delete({"user_id": user})  # cleanup
 
         case None:
-            self.handle_new_media_input(user, media_type="article", file_id=text)
+            self.handle_new_media_input(user, lang, media_type="article", file_id=text)
 
         case "delete":
             if db.Media.delete({"user_id": user, "file_id": text}):
-                self.deliver_message(user, "Successfully deleted. Send next or /done to stop")
+                self.deliver_message(user, translate(lang, "deleted"))
             else:
-                self.deliver_message(user, "That media was not found in your collection")
+                self.deliver_message(user, translate(lang, "not found"))
 
         case _:
             raise ValueError("Unsupported status")
 
 
-def media_input_handler(self, user, update):
+def media_input_handler(self, user, lang, update):
     message = update.get('message', {})
     caption = message.get('caption', None)
 
@@ -76,13 +78,13 @@ def media_input_handler(self, user, update):
 
     match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):
         case None | "description":  # media can't be description, so treat it like no status
-            self.handle_new_media_input(user, media_type, file_id, caption)
+            self.handle_new_media_input(user, lang, media_type, file_id, caption)
 
         case "delete":
             if db.Media.delete({"user_id": user, "file_id": file_id}):
-                self.deliver_message(user, "Successfully deleted. Send next or /done to stop")
+                self.deliver_message(user, translate(lang, "deleted"))
             else:
-                self.deliver_message(user, "That media was not found in your collection")
+                self.deliver_message(user, translate(lang, "not found"))
 
         case _:
             raise ValueError("Unsupported status")
@@ -123,7 +125,7 @@ def extract_media_info(message):
     return media_type, file_id
 
 
-def handle_new_media_input(self, user, media_type, file_id, caption=None):
+def handle_new_media_input(self, user, lang, media_type, file_id, caption=None):
     data = [{"user_id": user, "key": "media_type", "value": media_type},
             {"user_id": user, "key": "file_id", "value": file_id},
             {"user_id": user, "key": "status", "value": "description"}]  # set status to description
@@ -132,12 +134,12 @@ def handle_new_media_input(self, user, media_type, file_id, caption=None):
         data.append({"user_id": user, "key": "caption", "value": caption})
 
     db.Temp.add_bulk(data)
-    self.deliver_message(user, "Please provide a description for this media. Type /cancel to cancel")
+    self.deliver_message(user, translate(lang, "describe"))
 
 
-def handle_inline_query(self, user, update):
+def handle_inline_query(self, user, lang, update):
     query_id = update["inline_query"]["id"]
-    query_text = normalize_text(["inline_query"]["query"])
+    query_text = normalize_text(update["inline_query"]["query"])
     offset = update["inline_query"]["offset"]
     offset = int(offset) if offset != "" else 0
 
@@ -154,7 +156,7 @@ def handle_inline_query(self, user, update):
             [],
             is_personal=True,
             cache_time=0,
-            switch_pm_text="No media found. Click here to open bot's chat",
+            switch_pm_text=translate(lang, "empty"),
             switch_pm_parameter="default"
         )
     else:
@@ -229,7 +231,7 @@ def handle_inline_query(self, user, update):
             next_offset=next_offset,
             is_personal=True,
             cache_time=CACHETIME,
-            switch_pm_text="Click here to open bot's chat",
+            switch_pm_text=translate(lang, "open"),
             switch_pm_parameter="default"
         )
 
