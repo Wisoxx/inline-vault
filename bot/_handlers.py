@@ -25,7 +25,7 @@ def handle_message(self, user, update):
                 db.Temp.delete({"user_id": user})
                 self.deliver_message(user, "Done deleting.")
             case _:
-                self.handle_text_input(user, text)
+                self.handle_text_input(user, update)
 
     elif any(media_type in message for media_type in ["photo", "document", "audio", "voice", "video", "sticker", "animation"]):
         self.media_input_handler(user, update)
@@ -33,7 +33,8 @@ def handle_message(self, user, update):
         self.deliver_message(user, "From the web: sorry, I didn't understand that kind of message")
 
 
-def handle_text_input(self, user, text):
+def handle_text_input(self, user, update):
+    text = update["message"]["text"]
     match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):  # status
         case "description":
             media_type = db.Temp.get({"user_id": user, "key": "media_type"}, include_column_names=True)["value"]
@@ -41,9 +42,12 @@ def handle_text_input(self, user, text):
             caption = db.Temp.get({"user_id": user, "key": "caption"}, include_column_names=True).get("value", None)
             description = text
 
-            db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description,
-                          "caption": caption})
-            self.deliver_message(user, "Successfully added")
+            if db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description,
+                          "caption": caption}):
+                self.deliver_message(user, "Successfully added")
+            else:
+                reply_id = update["message_id"]
+                self.deliver_message(user, "You already have that in your collection", reply_to_msg_id=reply_id)
 
             db.Temp.delete({"user_id": user})  # cleanup
 
@@ -51,8 +55,11 @@ def handle_text_input(self, user, text):
             self.handle_new_media_input(user, media_type="article", file_id=text)
 
         case "delete":
-            db.Media.delete({"user_id": user, "media_type": "article", "file_id": text})
-            self.deliver_message(user, "Successfully deleted. Send next or /done to stop")
+            if db.Media.delete({"user_id": user, "file_id": text}):
+                self.deliver_message(user, "Successfully deleted. Send next or /done to stop")
+            else:
+                reply_id = update["message_id"]
+                self.deliver_message(user, "That media was not found in your collection", reply_to_msg_id=reply_id)
 
         case _:
             raise ValueError("Unsupported status")
@@ -69,8 +76,11 @@ def media_input_handler(self, user, update):
             self.handle_new_media_input(user, media_type, file_id, caption)
 
         case "delete":
-            db.Media.delete({"user_id": user, "media_type": media_type, "file_id": file_id})
-            self.deliver_message(user, "Successfully deleted. Send next or /done to stop")
+            if db.Media.delete({"user_id": user, "file_id": file_id}):
+                self.deliver_message(user, "Successfully deleted. Send next or /done to stop")
+            else:
+                reply_id = update["message_id"]
+                self.deliver_message(user, "That media was not found in your collection", reply_to_msg_id=reply_id)
 
         case _:
             raise ValueError("Unsupported status")
