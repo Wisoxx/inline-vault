@@ -43,7 +43,7 @@ def handle_text_input(self, user, update):
             description = text
 
             if db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description,
-                          "caption": caption}):
+                          "caption": caption})[0]:
                 self.deliver_message(user, "Successfully added")
             else:
                 reply_id = update["message_id"]
