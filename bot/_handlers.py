@@ -1,4 +1,5 @@
 from telepot.namedtuple import InlineQueryResultCachedAudio, InlineQueryResultCachedDocument, InlineQueryResultCachedGif, InlineQueryResultCachedPhoto, InlineQueryResultCachedSticker, InlineQueryResultCachedVideo, InlineQueryResultCachedVoice, InlineQueryResultArticle, InputTextMessageContent
+from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 import database as db
 from logger import setup_logger
 import string
@@ -19,9 +20,15 @@ def handle_message(self, user, lang, update):
         # commands have bigger priority than other input
         if text.startswith("/start") or text.startswith("/help"):
             username = update["message"]["from"]["username"]
+            bot_username = "@inlinevaultbot"
+            keyboard = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(text=translate(lang, "try"), switch_inline_query=bot_username)]
+                ]
+            )
             if db.Users.add({"user_id": user, "username": username})[0]:
                 logger.info(f"New user added: {username}")
-            self.deliver_message(user, translate(lang, "start"))
+            self.deliver_message(user, translate(lang, "start"), reply_markup=keyboard)
         elif text.startswith("/delete"):
             db.Temp.add({"user_id": user, "key": "status", "value": "delete"})
             self.deliver_message(user, translate(lang, "delete"))

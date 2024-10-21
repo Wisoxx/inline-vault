@@ -12,7 +12,8 @@ def translate(lang: str, key: str, values: dict = None):
             'not found': 'That media was not found in your collection',
             'describe': 'Please provide a description for this media. Type /cancel to cancel',
             'empty': 'No media found. Click here to open bot\'s chat',
-            'open': 'Click here to open bot\'s chat'
+            'open': 'Click here to open bot\'s chat',
+            'try': 'Try it out!'
         },
         'uk': {
             'start': 'Привіт. Я буду зберігати твої медіа в безпеці і під рукою',
@@ -26,7 +27,8 @@ def translate(lang: str, key: str, values: dict = None):
             'not found': 'Це медіа не знайдено в твоїй колекції',
             'describe': 'Надай опис цьому медіа. Надішли /cancel, щоб скасувати',
             'empty': 'Нічого не знайдено. Натисни тут, щоб відкрити чат з ботом',
-            'open': 'Натисни тут, щоб відкрити чат з ботом'
+            'open': 'Натисни тут, щоб відкрити чат з ботом',
+            'try': 'Спробуй!'
         },
         'pl': {
             'start': 'Cześć. Będę czuwać nad bezpieczeństwem twoich mediów i ich ciągłą dostępnością',
@@ -40,7 +42,8 @@ def translate(lang: str, key: str, values: dict = None):
             'not found': 'Tego media nie znaleziono w twojej kolekcji',
             'describe': 'Podaj opis tego nośnika. Wyślij /cancel, żeby anulować',
             'empty': 'Nie znaleziono mediów. Kliknij tutaj, aby otworzyć czat bota',
-            'open': 'Kliknij tutaj, aby otworzyć czat bota'
+            'open': 'Kliknij tutaj, aby otworzyć czat bota',
+            'try': 'Spróbuj!'
         }
     }
     lang = lang if lang in ("en", "uk", "pl") else "en"  # default lang is english
