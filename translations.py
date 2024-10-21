@@ -16,7 +16,7 @@ def translate(lang: str, key: str, values: dict = None):
             'try': 'Try it out!'
         },
         'uk': {
-            'start': 'Привіт. Я буду зберігати твої медіа в безпеці і під рукою',
+            'start': 'Привіт. Я буду зберігати твої медіа в безпеці і під рукою\n\nТи можеш висилати медіа просто вписуючи @inlinevaultbot в текстовому полі.\nЩоб додати нове медіа, спершу просто вишли мені його, а потім вишли опис/теги за допомогою яких ти хочеш знаходити конкретну річ. Якщо хочеш видалити щось, вишли /delete і потім все, що хочеш видалити',
             'delete': 'Тепер надішли мені всі медіа, які ти хочеш видалити. Надішли /cancel, щоб відмінити',
             'cancelled': 'Успішно скасовано.',
             'finish deleting': 'Видалення завершено',
@@ -31,7 +31,7 @@ def translate(lang: str, key: str, values: dict = None):
             'try': 'Спробуй!'
         },
         'pl': {
-            'start': 'Cześć. Będę czuwać nad bezpieczeństwem twoich mediów i ich ciągłą dostępnością',
+            'start': 'Cześć. Będę czuwać nad bezpieczeństwem twoich mediów i ich ciągłą dostępnością\n\nMożesz wysłać media przez po prostu pisząc @inlinevaultbot w polu tekstowym.\nAby dodać nowe media, po prostu wyślij je do mnie, a następnie wyślij mi opis/tagi, których chcesz użyć, aby znaleźć te media. eśli chcesz coś usunąć, wyślij /delete, a następnie wyślij wszystko, co chcesz usunąć',
             'delete': 'Teraz wyślij mi wszystkie media, które chcesz usunąć. Wyślij /cancel, żeby anulować',
             'cancelled': 'Pomyślnie anulowano',
             'finish deleting': 'Usuwanie zakończono',
