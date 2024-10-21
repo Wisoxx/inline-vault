@@ -79,7 +79,7 @@ def media_input_handler(self, user, update):
             if db.Media.delete({"user_id": user, "file_id": file_id}):
                 self.deliver_message(user, "Successfully deleted. Send next or /done to stop")
             else:
-                reply_id = update["message_id"]
+                reply_id = update["message"]["message_id"]
                 self.deliver_message(user, "That media was not found in your collection", reply_to_msg_id=reply_id)
 
         case _:
