@@ -9,8 +9,8 @@ from translations import translate
 logger = setup_logger(__name__)
 
 
-LIMIT = 25
-CACHETIME = 0
+LIMIT = 50
+CACHETIME = 10
 
 
 def handle_message(self, user, lang, update):
@@ -23,7 +23,7 @@ def handle_message(self, user, lang, update):
             if not username:
                 first_name = update.get("message", {}).get("from", {}).get("first_name", "")
                 last_name = update.get("message", {}).get("from", {}).get("last_name", "")
-                username = first_name.lower() + "_" + last_name.lower()
+                username = ':' + first_name.lower() + ":" + last_name.lower() + ':'
             keyboard = InlineKeyboardMarkup(
                 inline_keyboard=[
                     [InlineKeyboardButton(text=translate(lang, "try"), switch_inline_query_current_chat="")]
@@ -100,7 +100,7 @@ def media_input_handler(self, user, lang, update):
         case "delete":
             if db.Media.delete({"user_id": user, "file_id": file_id}):
                 self.deliver_message(user, translate(lang, "deleted"))
-                logger.log(f"User {user} deleted {file_id}")
+                logger.info(f"User {user} deleted {file_id}")
             else:
                 self.deliver_message(user, translate(lang, "not found"))
 
@@ -162,6 +162,8 @@ def handle_inline_query(self, user, lang, update):
     query_text = normalize_text(update["inline_query"]["query"])
     offset = update["inline_query"]["offset"]
     offset = int(offset) if offset != "" else 0
+
+    logger.info(f"Incoming inline query: user={user}, offset={offset}, text={query_text}")
 
     fetched, total = db.Media.search_by_description(user, query_text, limit=LIMIT, offset=offset)
     next_offset = offset + LIMIT
@@ -247,7 +249,7 @@ def handle_inline_query(self, user, lang, update):
 
         self.answerInlineQuery(
             query_id,
-            results,
+            reversed(results),
             next_offset=next_offset,
             is_personal=True,
             cache_time=CACHETIME,
