@@ -249,7 +249,7 @@ def handle_inline_query(self, user, lang, update):
 
         self.answerInlineQuery(
             query_id,
-            reversed(results),
+            results[::-1],  # reverse list
             next_offset=next_offset,
             is_personal=True,
             cache_time=CACHETIME,
