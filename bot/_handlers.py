@@ -66,7 +66,7 @@ def handle_text_input(self, user, lang, update):
             if db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description,
                           "caption": caption})[0]:
                 self.deliver_message(user, translate(lang, "added"))
-                logger.info(f"User {user} added: {file_id}")
+                logger.info(f"User {user} added: {media_type} \"{file_id}\"")
             else:
                 self.deliver_message(user, translate(lang, "duplicate"))
 
