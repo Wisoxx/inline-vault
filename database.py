@@ -444,14 +444,14 @@ class Media(Database):
             """
             total_count_params = [search_query, user_id]
 
-        else:  # If description is empty, fetch all records for the user
+        else:  # If description is empty, fetch all records for the user in reverse order of when they were added
             # Query to select all media for the specified user
             query = f"""
                 SELECT media.*, media_fts.description 
                 FROM media
                 JOIN media_fts ON media.media_id = media_fts.media_id
                 WHERE media.user_id = ?
-                ORDER BY rank
+                ORDER BY rank DESC
             """
 
             # Count query for total records for the user
