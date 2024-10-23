@@ -451,7 +451,7 @@ class Media(Database):
                 FROM media
                 JOIN media_fts ON media.media_id = media_fts.media_id
                 WHERE media.user_id = ?
-                ORDER BY rank DESC
+                ORDER BY media.media_id DESC
             """
 
             # Count query for total records for the user
