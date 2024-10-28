@@ -20,6 +20,7 @@ def setup_logger(name):
         console_formatter = logging.Formatter('%(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
         console_handler.setFormatter(console_formatter)
         console_handler.setLevel(logging.DEBUG)
+        console_handler.encoding = 'utf-8'
 
         logger.setLevel(logging.DEBUG)  # lowest level to allow separate levels for files and console
         logger.addHandler(file_handler)
