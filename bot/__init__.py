@@ -36,7 +36,7 @@ class Bot:
         exceptions = exceptions or []
         users = db.Users.execute_query("SELECT user_id FROM users;")
         for user in users:
-            if user[0] in exceptions or user[1] in exceptions:
+            if user[0] in exceptions:
                 continue
             self.deliver_message(user[0], text, reply_markup=reply_markup)
 
