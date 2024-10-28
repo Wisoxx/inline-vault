@@ -420,9 +420,8 @@ class Media(Database):
         params = [user_id]
 
         if description:
-            # Split the description into individual search terms and add prefix search
-            search_terms = [f"{term}*" for term in description.split()]
-            # Create a search string with terms combined by OR
+            terms = description.split()
+            search_terms = terms[:-1] + [f"{terms[-1]}*"]  # append * to the last term to enable prefix search for it
             search_query = ' OR '.join(search_terms)
 
             # Query to select media matching the search description
