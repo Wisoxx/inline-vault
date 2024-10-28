@@ -33,12 +33,16 @@ class Bot:
         logger.debug("Sent message: {}".format(json.dumps(response, indent=4)))
 
     def broadcast(self, text: str, reply_markup=None, exceptions=None):
+        logger.info("Broadcasting message: {}".format(text))
         exceptions = exceptions or []
+        logger.info(f"Found {len(exceptions)} exceptions")
         users = db.Users.execute_query("SELECT user_id FROM users;")
         for user in users:
             if user[0] in exceptions:
                 continue
             self.deliver_message(user[0], text, reply_markup=reply_markup)
+        logger.info(f"Sent to {len(users)} users")
+
 
     def get_user(self, update):
         if "message" in update:

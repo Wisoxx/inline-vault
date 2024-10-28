@@ -70,7 +70,7 @@ def handle_text_input(self, user, lang, update):
     text = update["message"]["text"]
     match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):  # status
         case "description":
-            temp_data = db.Temp.get({"user_id": user})
+            temp_data = db.Temp.get({"user_id": user}, include_column_names=True)
             temp_dict = {item["key"]: item["value"] for item in temp_data}  # combine all key-value pairs in one dict
             media_type = temp_dict.get("media_type")
             file_id = temp_dict.get("file_id")
