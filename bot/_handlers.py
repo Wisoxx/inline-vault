@@ -1,13 +1,13 @@
-from telepot.namedtuple import InlineQueryResultCachedAudio, InlineQueryResultCachedDocument, InlineQueryResultCachedGif, InlineQueryResultCachedPhoto, InlineQueryResultCachedSticker, InlineQueryResultCachedVideo, InlineQueryResultCachedVoice, InlineQueryResultArticle, InputTextMessageContent
+from telepot.namedtuple import InlineQueryResultCachedAudio, InlineQueryResultCachedDocument, \
+    InlineQueryResultCachedGif, InlineQueryResultCachedPhoto, InlineQueryResultCachedSticker, \
+    InlineQueryResultCachedVideo, InlineQueryResultCachedVoice, InlineQueryResultArticle, InputTextMessageContent
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 import database as db
 from logger import setup_logger
 import string
 from translations import translate
 
-
 logger = setup_logger(__name__)
-
 
 LIMIT = 50
 CACHETIME = 10
@@ -54,24 +54,29 @@ def handle_message(self, user, lang, update):
         logger.warning(f"Couldn't recognize update: {update}")
 
 
+def save_media(self, user, lang, description, media_type, file_id, caption):
+    if db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description,
+                     "caption": caption})[0]:
+        self.deliver_message(user, translate(lang, "added"))
+        logger.info(f"User {user} added: {media_type} \"{file_id}\"")
+    else:
+        self.deliver_message(user, translate(lang, "duplicate"))
+
+    db.Temp.delete({"user_id": user})  # cleanup
+    logger.debug(f"User {user} cleared temp")
+
+
 def handle_text_input(self, user, lang, update):
     text = update["message"]["text"]
     match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):  # status
         case "description":
-            media_type = db.Temp.get({"user_id": user, "key": "media_type"}, include_column_names=True)["value"]
-            file_id = db.Temp.get({"user_id": user, "key": "file_id"}, include_column_names=True)["value"]
-            caption = db.Temp.get({"user_id": user, "key": "caption"}, include_column_names=True).get("value", None)
+            temp_data = db.Temp.get({"user_id": user})
+            temp_dict = {item["key"]: item["value"] for item in temp_data}  # combine all key-value pairs in one dict
+            media_type = temp_dict.get("media_type")
+            file_id = temp_dict.get("file_id")
+            caption = temp_dict.get("caption", None)
             description = normalize_text(text)
-
-            if db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description,
-                          "caption": caption})[0]:
-                self.deliver_message(user, translate(lang, "added"))
-                logger.info(f"User {user} added: {media_type} \"{file_id}\"")
-            else:
-                self.deliver_message(user, translate(lang, "duplicate"))
-
-            db.Temp.delete({"user_id": user})  # cleanup
-            logger.debug(f"User {user} cleared temp")
+            self.save_media(user, lang, description, media_type, file_id, caption)
 
         case None:
             self.handle_new_media_input(user, lang, media_type="article", file_id=text)
@@ -94,8 +99,16 @@ def media_input_handler(self, user, lang, update):
     media_type, file_id = extract_media_info(message)
 
     match db.Temp.get({"user_id": user, "key": "status"}, include_column_names=True).get("value", None):
-        case None | "description":  # media can't be description, so treat it like no status
+        case None:
             self.handle_new_media_input(user, lang, media_type, file_id, caption)
+
+        case "description":
+            if db.Temp.get({"user_id": user, "key": "media_type"}, include_column_names=True)["value"] != "article":
+                self.handle_new_media_input(user, lang, media_type, file_id, caption)
+            else:  # description was sent before the main media, usually by forwarding
+                # text of the message is stored in file_id
+                description = normalize_text(db.Temp.get({"user_id": user, "key": "file_id"}, include_column_names=True)["value"])
+                self.save_media(user, lang, description, media_type, file_id, caption)
 
         case "delete":
             if db.Media.delete({"user_id": user, "file_id": file_id}):

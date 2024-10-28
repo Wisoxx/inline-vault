@@ -9,7 +9,7 @@ logger = setup_logger(__name__)
 
 
 class Bot:
-    from ._handlers import handle_message, handle_inline_query, media_input_handler, handle_new_media_input, handle_text_input
+    from ._handlers import handle_message, handle_inline_query, media_input_handler, handle_new_media_input, handle_text_input, save_media
     def __init__(self, token):
         logger.info('Initializing bot...')
         self.bot = telepot.Bot(token)
