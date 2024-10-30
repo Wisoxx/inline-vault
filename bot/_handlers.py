@@ -59,8 +59,11 @@ def handle_message(self, user, lang, update):
 
 
 def check_description(self, user, lang, file_id):
-    description = db.Media.get({"user_id": user, "file_id": file_id}, include_column_names=True)["description"]
-    self.deliver_message(user, translate(lang, "described by", {"description": description}))
+    description = db.Media.get({"user_id": user, "file_id": file_id}, include_column_names=True).get("description", None)
+    if not description:
+        self.deliver_message(user, translate(lang, "not found"))
+    else:
+        self.deliver_message(user, translate(lang, "described by", {"description": description}))
     db.Temp.delete({"user_id": user})  # cleanup
     logger.debug(f"User {user} cleared temp")
 
