@@ -186,12 +186,13 @@ def handle_inline_query(self, user, lang, update):
         next_offset = str(next_offset)
 
     if not fetched:
+        key = "empty" if query_text else "no records"
         self.answerInlineQuery(
             query_id,
             [],
             is_personal=True,
             cache_time=0,
-            switch_pm_text=translate(lang, "empty"),
+            switch_pm_text=translate(lang, key),
             switch_pm_parameter="default"
         )
     else:
