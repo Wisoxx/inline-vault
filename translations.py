@@ -52,6 +52,7 @@ def translate(lang: str, key: str, values: dict = None):
             'no records': 'Jeszcze niczego nie dodałeś. Kliknij tutaj, aby otworzyć czat bota'
         }
     }
+    lang = "uk" if lang == "ru" else lang  # change russian to ukrainian
     lang = lang if lang in ("en", "uk", "pl") else "en"  # default lang is english
     translation = translations[lang][key]
     if values:
