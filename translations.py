@@ -16,7 +16,7 @@ def translate(lang: str, key: str, values: dict = None):
             'try': 'Try it out!',
             'error': 'Something went wrong',
             'no records': 'You haven\'t added anything. Click here to open bot\'s chat',
-            'check description': 'Send me a media which description you want to check',
+            'check description': 'Send me a media which description you want to check. Type /cancel to cancel',
             'described by': 'You can find that media by searching:\n {description}'
         },
         'uk': {
@@ -35,7 +35,7 @@ def translate(lang: str, key: str, values: dict = None):
             'try': 'Спробуй!',
             'error': 'Щось пішло не плану',
             'no records': 'Ти ще нічого не додав. Натисни тут, щоб відкрити чат з ботом',
-            'check description': 'Надішли мені медіа, опис якого ти хочеш перевірити',
+            'check description': 'Надішли мені медіа, опис якого ти хочеш перевірити. Надішли /cancel, щоб скасувати',
             'described by': 'Ти можеш знайти це медіа шукаючи:\n {description}'
         },
         'pl': {
@@ -54,7 +54,7 @@ def translate(lang: str, key: str, values: dict = None):
             'try': 'Spróbuj!',
             'error': 'Coś poszło nie tak',
             'no records': 'Jeszcze niczego nie dodałeś. Kliknij tutaj, aby otworzyć czat bota',
-            'check description': 'Wyślij mi media, którego opis chcesz sprawdzić',
+            'check description': 'Wyślij mi media, którego opis chcesz sprawdzić. Wyślij /cancel, żeby anulować',
             'described by': 'Możesz znaleźć to media, wyszukując:\n {description}'
         }
     }
