@@ -15,7 +15,9 @@ def translate(lang: str, key: str, values: dict = None):
             'open': 'Click here to open bot\'s chat',
             'try': 'Try it out!',
             'error': 'Something went wrong',
-            'no records': 'You haven\'t added anything. Click here to open bot\'s chat'
+            'no records': 'You haven\'t added anything. Click here to open bot\'s chat',
+            'check description': 'Send me a media which description you want to check',
+            'described by': 'You can find that media by searching:\n {description}'
         },
         'uk': {
             'start': 'Привіт. Я буду зберігати твої медіа в безпеці і під рукою\n\nТи можеш висилати медіа просто вписуючи @inlinevaultbot в текстовому полі.\nЩоб додати нове медіа, спершу просто вишли мені його, а потім вишли опис/теги за допомогою яких ти хочеш знаходити конкретну річ. Якщо хочеш видалити щось, вишли /delete і потім все, що хочеш видалити',
@@ -32,7 +34,9 @@ def translate(lang: str, key: str, values: dict = None):
             'open': 'Натисни тут, щоб відкрити чат з ботом',
             'try': 'Спробуй!',
             'error': 'Щось пішло не плану',
-            'no records': 'Ти ще нічого не додав. Натисни тут, щоб відкрити чат з ботом'
+            'no records': 'Ти ще нічого не додав. Натисни тут, щоб відкрити чат з ботом',
+            'check description': 'Надішли мені медіа, опис якого ти хочеш перевірити',
+            'described by': 'Ти можеш знайти це медіа шукаючи:\n {description}'
         },
         'pl': {
             'start': 'Cześć. Będę czuwać nad bezpieczeństwem twoich mediów i ich ciągłą dostępnością\n\nMożesz wysłać media przez po prostu pisząc @inlinevaultbot w polu tekstowym.\nAby dodać nowe media, po prostu wyślij je do mnie, a następnie wyślij mi opis/tagi, których chcesz użyć, aby znaleźć te media. eśli chcesz coś usunąć, wyślij /delete, a następnie wyślij wszystko, co chcesz usunąć',
@@ -49,7 +53,9 @@ def translate(lang: str, key: str, values: dict = None):
             'open': 'Kliknij tutaj, aby otworzyć czat bota',
             'try': 'Spróbuj!',
             'error': 'Coś poszło nie tak',
-            'no records': 'Jeszcze niczego nie dodałeś. Kliknij tutaj, aby otworzyć czat bota'
+            'no records': 'Jeszcze niczego nie dodałeś. Kliknij tutaj, aby otworzyć czat bota',
+            'check description': 'Wyślij mi media, którego opis chcesz sprawdzić',
+            'described by': 'Możesz znaleźć to media, wyszukując:\n {description}'
         }
     }
     lang = "uk" if lang == "ru" else lang  # change russian to ukrainian

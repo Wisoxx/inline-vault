@@ -32,6 +32,10 @@ def handle_message(self, user, lang, update):
             if db.Users.add({"user_id": user, "username": username})[0]:
                 logger.info(f"New user added: {username}")
             self.deliver_message(user, translate(lang, "start"), reply_markup=keyboard)
+        elif text.startswith("/description"):
+            db.Temp.add({"user_id": user, "key": "status", "value": "check description"})
+            self.deliver_message(user, translate(lang, "check description"))
+            logger.debug(f"User {user} changed status to check description")
         elif text.startswith("/delete"):
             db.Temp.add({"user_id": user, "key": "status", "value": "delete"})
             self.deliver_message(user, translate(lang, "delete"))
@@ -54,6 +58,13 @@ def handle_message(self, user, lang, update):
         logger.warning(f"Couldn't recognize update: {update}")
 
 
+def check_description(self, user, lang, file_id):
+    description = db.Media.get({"user_id": user, "file_id": file_id}, include_column_names=True)["description"]
+    self.deliver_message(user, translate(lang, "described by", {"description": description}))
+    db.Temp.delete({"user_id": user})  # cleanup
+    logger.debug(f"User {user} cleared temp")
+
+
 def save_media(self, user, lang, description, media_type, file_id, caption):
     if db.Media.add({"user_id": user, "media_type": media_type, "file_id": file_id, "description": description,
                      "caption": caption})[0]:
@@ -61,6 +72,7 @@ def save_media(self, user, lang, description, media_type, file_id, caption):
         logger.info(f"User {user} added: {media_type} \"{file_id}\"")
     else:
         self.deliver_message(user, translate(lang, "duplicate"))
+        self.check_description(user, lang, file_id)
 
     db.Temp.delete({"user_id": user})  # cleanup
     logger.debug(f"User {user} cleared temp")
@@ -80,6 +92,9 @@ def handle_text_input(self, user, lang, update):
 
         case None:
             self.handle_new_media_input(user, lang, media_type="article", file_id=text)
+
+        case "check description":
+            self.check_description(user, lang, text)
 
         case "delete":
             if db.Media.delete({"user_id": user, "file_id": text}):
@@ -109,6 +124,9 @@ def media_input_handler(self, user, lang, update):
                 # text of the message is stored in file_id
                 description = normalize_text(db.Temp.get({"user_id": user, "key": "file_id"}, include_column_names=True)["value"])
                 self.save_media(user, lang, description, media_type, file_id, caption)
+
+        case "check description":
+            self.check_description(user, lang, file_id)
 
         case "delete":
             if db.Media.delete({"user_id": user, "file_id": file_id}):
