@@ -208,12 +208,17 @@ def handle_inline_query(self, user, lang, update):
 
     if not fetched:
         key = "empty" if query_text else "no records"
+        text = translate(lang, key)
+
+        if user == 930457591:
+            text = "Testing the limit of text message on a button inside inline query results"
+
         self.answerInlineQuery(
             query_id,
             [],
             is_personal=True,
             cache_time=0,
-            switch_pm_text=translate(lang, key),
+            switch_pm_text=text,
             switch_pm_parameter="default"
         )
     else:
