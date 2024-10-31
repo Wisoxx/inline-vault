@@ -197,7 +197,7 @@ def handle_inline_query(self, user, lang, update):
     offset = update["inline_query"]["offset"]
     offset = int(offset) if offset != "" else 0
 
-    logger.info(f"Incoming inline query: user={user}, offset={offset}, text=\"{query_text}\"")
+    logger.info(f"Incoming inline query: user={user}, lang={lang}, offset={offset}, text=\"{query_text}\"")
 
     fetched, total = db.Media.search_by_description(user, query_text, limit=LIMIT, offset=offset)
     next_offset = offset + LIMIT
