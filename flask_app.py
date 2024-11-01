@@ -5,6 +5,7 @@ from urllib3.util.retry import Retry
 from logger import setup_logger
 import os
 import string
+import re
 from dotenv import load_dotenv
 
 
@@ -72,12 +73,13 @@ def view_logs():
 
         colored_logs = []
         entry_lines = []
+        timestamp_pattern = r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'
 
         for line in log_content:
             line = clean_line(line).rstrip()  # Clean line and remove trailing whitespace
 
             # Detect the start of a new log entry by timestamp format
-            if line.startswith("2024-") and entry_lines:
+            if re.match(timestamp_pattern, line) and entry_lines:
                 # Process the accumulated entry
                 entry_text = "\n".join(entry_lines)
 
