@@ -75,7 +75,7 @@ def view_logs():
                 continue
 
             # Split based on spaces to extract timestamp, level, and message
-            parts = line.split(" ", 3)
+            parts = line.split(maxsplit=3)
             if len(parts) >= 3:
                 # Extract the timestamp and level
                 timestamp = " ".join(parts[:2])  # Combine the first two parts for the timestamp
@@ -85,16 +85,8 @@ def view_logs():
                 # Determine the color based on the level
                 color = level_colors.get(level, "white")  # Default to white if level not found
 
-                # Create a colored HTML line
-                if message.startswith("{") and message.endswith("}"):
-                    # This is likely JSON; format it properly
-                    formatted_message = message.replace("{", "<br>{").replace("}", "}<br>")
-                    colored_logs.append(
-                        f'<span style="color: {color};">{timestamp} <strong>{level}</strong>: {formatted_message}</span><br>')
-                else:
-                    # Regular message formatting
-                    colored_logs.append(
-                        f'<span style="color: {color};">{timestamp} <strong>{level}</strong>: {message}</span><br>')
+                colored_logs.append(
+                    f'<span style="color: {color};">{timestamp} <strong>{level}</strong>: {message}</span><br>')
             else:
                 # For unexpected lines, retain the original line with white color
                 colored_logs.append(f'<span style="color: white;">{line}</span><br>')
