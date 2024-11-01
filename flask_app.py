@@ -68,17 +68,17 @@ def view_logs():
 
         colored_logs = []
         entry_lines = []
-        current_color = "white"
 
         for line in log_content:
             line = line.rstrip()
 
             # Detect the start of a new log entry by timestamp format
-            if line.startswith("2024-") and len(entry_lines) > 0:
+            if line.startswith("2024-") and entry_lines:
                 # Process the accumulated entry
                 entry_text = "\n".join(entry_lines)
 
-                # Extract level and determine color
+                # Reset color at the start of each entry
+                current_color = "white"
                 parts = entry_lines[0].split(maxsplit=3)
                 if len(parts) >= 3:
                     level = parts[2].strip(":")
@@ -98,6 +98,12 @@ def view_logs():
         # Process the last entry
         if entry_lines:
             entry_text = "\n".join(entry_lines)
+            current_color = "white"
+            parts = entry_lines[0].split(maxsplit=3)
+            if len(parts) >= 3:
+                level = parts[2].strip(":")
+                current_color = level_colors.get(level, "white")
+
             colored_logs.append(
                 f'<span style="color: {current_color};">{entry_text}</span><br>'
             )
