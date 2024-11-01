@@ -68,6 +68,10 @@ def view_logs():
 
         colored_logs = []
         for line in log_content:
+            line = line.strip()  # Remove leading/trailing whitespace
+            if not line:  # Skip empty lines
+                continue
+
             parts = line.split(" ", 3)  # Split based on spaces
             if len(parts) >= 3:
                 # Extract the timestamp and level
@@ -81,7 +85,7 @@ def view_logs():
                 # Create a colored HTML line
                 colored_logs.append(f'<span style="color: {color};">{timestamp} {level}: {message}</span><br>')
             else:
-                colored_logs.append(f'<span style="color: white;">{line.strip()}</span><br>')  # Default for unexpected lines
+                colored_logs.append(f'<span style="color: white;">{line}</span><br>')  # Default for unexpected lines
 
         return render_template_string('''        
                     <!DOCTYPE html>
