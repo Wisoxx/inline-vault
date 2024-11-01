@@ -4,6 +4,7 @@ import urllib3
 from urllib3.util.retry import Retry
 from logger import setup_logger
 import os
+import string
 from dotenv import load_dotenv
 
 
@@ -51,6 +52,9 @@ def telegram_webhook():
     return "OK"
 
 
+def clean_line(line):
+    return ''.join(char for char in line if char in string.printable)
+
 @app.route(f'/{SECRET}/logs', methods=["GET"])
 def view_logs():
     log_file_path = os.path.join(os.path.expanduser("~"), 'mysite', 'logs', 'app.log')
@@ -70,14 +74,14 @@ def view_logs():
         entry_lines = []
 
         for line in log_content:
-            line = line.rstrip()
+            line = clean_line(line).rstrip()  # Clean line and remove trailing whitespace
 
             # Detect the start of a new log entry by timestamp format
             if line.startswith("2024-") and entry_lines:
                 # Process the accumulated entry
                 entry_text = "\n".join(entry_lines)
 
-                # Reset color at the start of each entry
+                # Determine the color based on log level in the first line of the entry
                 current_color = "white"
                 parts = entry_lines[0].split(maxsplit=3)
                 if len(parts) >= 3:
@@ -95,7 +99,7 @@ def view_logs():
             # Accumulate lines for the current entry
             entry_lines.append(line)
 
-        # Process the last entry
+        # Process the last entry if there are remaining lines
         if entry_lines:
             entry_text = "\n".join(entry_lines)
             current_color = "white"
@@ -108,7 +112,7 @@ def view_logs():
                 f'<span style="color: {current_color};">{entry_text}</span><br>'
             )
 
-        # Join the logs for rendering and wrap in the template
+        # Join the logs for rendering and wrap in the HTML template
         return render_template_string('''
                     <!DOCTYPE html>
                     <html lang="en">

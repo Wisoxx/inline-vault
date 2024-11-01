@@ -313,16 +313,3 @@ def handle_chat_member_status(self, user, lang, update):
         logger.info(f"All records of {user} have been deleted")
     elif old_status == "kicked" and new_status == "member":
         logger.info(f"User {user} has unblocked the bot")
-        username = update.get("my_chat_member", {}).get("from", {}).get("username", None)
-        if not username:
-            first_name = update.get("my_chat_member", {}).get("from", {}).get("first_name", "")
-            last_name = update.get("my_chat_member", {}).get("from", {}).get("last_name", "")
-            username = ':' + first_name.lower() + ":" + last_name.lower() + ':'
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [InlineKeyboardButton(text=translate(lang, "try"), switch_inline_query_current_chat="")]
-            ]
-        )
-        if db.Users.add({"user_id": user, "username": username})[0]:
-            logger.info(f"New user added: {username}")
-        self.deliver_message(user, translate(lang, "start"), reply_markup=keyboard)
