@@ -67,25 +67,33 @@ def view_logs():
             log_content = log_file.readlines()  # Read the log file line by line
 
         colored_logs = []
+        last_color = "white"  # Default color if no level found
+
         for line in log_content:
             line = line.strip()  # Remove leading/trailing whitespace
             if not line:  # Skip empty lines
                 continue
 
-            parts = line.split(" ", 3)  # Split based on spaces
-            if len(parts) >= 3:
-                # Extract the timestamp and level
-                timestamp = " ".join(parts[:2])
-                level = parts[2].strip(":")  # Get the level and strip the colon
-                message = parts[3] if len(parts) > 3 else ""  # Get the message
+            if any(line.startswith(prefix) for prefix in ["INFO:", "DEBUG:", "WARNING:", "ERROR:", "CRITICAL:"]):
+                # It's a new log entry
+                parts = line.split(" ", 3)  # Split based on spaces
+                if len(parts) >= 3:
+                    # Extract the timestamp and level
+                    timestamp = " ".join(parts[:2])
+                    level = parts[2].strip(":")  # Get the level and strip the colon
+                    message = parts[3] if len(parts) > 3 else ""  # Get the message
 
-                # Determine the color based on the level
-                color = level_colors.get(level, "white")  # Default to white if level not found
+                    # Determine the color based on the level
+                    last_color = level_colors.get(level, "white")  # Update last_color
 
-                # Create a colored HTML line
-                colored_logs.append(f'<span style="color: {color};">{timestamp} {level}: {message}</span><br>')
+                    # Create a colored HTML line
+                    colored_logs.append(f'<span style="color: {last_color};">{timestamp} {level}: {message}</span><br>')
+                else:
+                    colored_logs.append(
+                        f'<span style="color: white;">{line}</span><br>')  # Default for unexpected lines
             else:
-                colored_logs.append(f'<span style="color: white;">{line}</span><br>')  # Default for unexpected lines
+                # For subsequent lines, apply the last known color
+                colored_logs.append(f'<span style="color: {last_color};">{line}</span><br>')
 
         return render_template_string('''        
                     <!DOCTYPE html>
