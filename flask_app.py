@@ -86,8 +86,15 @@ def view_logs():
                 color = level_colors.get(level, "white")  # Default to white if level not found
 
                 # Create a colored HTML line
-                colored_logs.append(
-                    f'<span style="color: {color};">{timestamp} <strong>{level}:</strong> {message}</span><br>')
+                if message.startswith("{") and message.endswith("}"):
+                    # This is likely JSON; format it properly
+                    formatted_message = message.replace("{", "<br>{").replace("}", "}<br>")
+                    colored_logs.append(
+                        f'<span style="color: {color};">{timestamp} <strong>{level}:</strong> {formatted_message}</span><br>')
+                else:
+                    # Regular message formatting
+                    colored_logs.append(
+                        f'<span style="color: {color};">{timestamp} <strong>{level}:</strong> {message}</span><br>')
             else:
                 # For unexpected lines, retain the original line with white color
                 colored_logs.append(f'<span style="color: white;">{line}</span><br>')
@@ -136,3 +143,4 @@ def view_logs():
 
     except Exception as e:
         return Response(f"Error reading log file: {str(e)}", status=500)
+
