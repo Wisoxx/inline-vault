@@ -90,11 +90,11 @@ def view_logs():
                     # This is likely JSON; format it properly
                     formatted_message = message.replace("{", "<br>{").replace("}", "}<br>")
                     colored_logs.append(
-                        f'<span style="color: {color};">{timestamp} <strong>{level}:</strong> {formatted_message}</span><br>')
+                        f'<span style="color: {color};">{timestamp} <strong>{level}</strong>: {formatted_message}</span><br>')
                 else:
                     # Regular message formatting
                     colored_logs.append(
-                        f'<span style="color: {color};">{timestamp} <strong>{level}:</strong> {message}</span><br>')
+                        f'<span style="color: {color};">{timestamp} <strong>{level}</strong>: {message}</span><br>')
             else:
                 # For unexpected lines, retain the original line with white color
                 colored_logs.append(f'<span style="color: white;">{line}</span><br>')
