@@ -300,3 +300,29 @@ def normalize_text(text):
     text = text.strip()  # trim whitespace
     text = ' '.join(text.split())  # remove extra whitespace
     return text
+
+
+def handle_chat_member_status(self, user, lang, update):
+    old_status = update["my_chat_member"]["old_chat_member"]["status"]
+    new_status = update["my_chat_member"]["new_chat_member"]["status"]
+
+    if old_status == "member" and new_status == "kicked":
+        logger.info(f"User {user} has blocked the bot")
+        db.Media.delete({"user_id": user})  # tables with fts don't support references, so it has to be separately
+        db.Users.delete({"user_id": user})  # temp data is linked to user_id and will be deleted too
+        logger.info(f"All records of {user} have been deleted")
+    elif old_status == "kicked" and new_status == "member":
+        logger.info(f"User {user} has unblocked the bot")
+        username = update.get("my_chat_member", {}).get("from", {}).get("username", None)
+        if not username:
+            first_name = update.get("my_chat_member", {}).get("from", {}).get("first_name", "")
+            last_name = update.get("my_chat_member", {}).get("from", {}).get("last_name", "")
+            username = ':' + first_name.lower() + ":" + last_name.lower() + ':'
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text=translate(lang, "try"), switch_inline_query_current_chat="")]
+            ]
+        )
+        if db.Users.add({"user_id": user, "username": username})[0]:
+            logger.info(f"New user added: {username}")
+        self.deliver_message(user, translate(lang, "start"), reply_markup=keyboard)

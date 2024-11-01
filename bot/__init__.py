@@ -10,7 +10,7 @@ logger = setup_logger(__name__)
 
 class Bot:
     from ._handlers import handle_message, handle_inline_query, media_input_handler, handle_new_media_input, \
-        handle_text_input, save_media, check_description
+        handle_text_input, save_media, check_description, handle_chat_member_status
 
     def __init__(self, token):
         logger.info('Initializing bot...')
@@ -53,6 +53,9 @@ class Bot:
         elif "inline_query" in update:
             user = update["inline_query"]["from"]["id"]
             lang = update["inline_query"]["from"]["language_code"]
+        elif "my_chat_member" in update:
+            user = update["my_chat_member"]["from"]["id"]
+            lang = update["my_chat_member"]["from"]["language_code"]
         else:
             raise KeyError("Couldn't find user")
 
@@ -71,6 +74,9 @@ class Bot:
 
             elif "inline_query" in update:
                 self.handle_inline_query(user, lang, update)
+
+            elif "my_chat_member" in update:
+                self.handle_chat_member_status(user, lang, update)
 
         except Exception as e:
             logger.critical(f"Couldn't process update: {e}", exc_info=True)
