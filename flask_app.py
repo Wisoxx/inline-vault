@@ -57,7 +57,7 @@ def view_logs():
     try:
         with open(log_file_path, 'r') as log_file:
             log_content = log_file.read()
-        return render_template_string('''
+        return render_template_string('''        
                     <!DOCTYPE html>
                     <html lang="en">
                     <head>
@@ -70,13 +70,19 @@ def view_logs():
                                 flex-direction: column;
                                 height: 100vh;
                                 margin: 0;
+                                background-color: #000;  /* Set the background to black */
+                                color: #fff;              /* Set the text color to white */
                             }
                             .log-content {
                                 flex: 1;
                                 overflow-y: auto;
                                 padding: 10px;
                                 border: 1px solid #ccc;
-                                background-color: #f8f8f8;
+                                background-color: #000;  /* Keep log content background black */
+                            }
+                            pre {
+                                white-space: pre-wrap;   /* Ensure long lines wrap */
+                                word-wrap: break-word;   /* Break words to fit the container */
                             }
                         </style>
                     </head>
