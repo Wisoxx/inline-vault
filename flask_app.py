@@ -54,9 +54,35 @@ def telegram_webhook():
 @app.route(f'/{SECRET}/logs', methods=["GET"])
 def view_logs():
     log_file_path = os.path.join(os.path.expanduser("~"), 'mysite', 'logs', 'app.log')
+    level_colors = {
+        "DEBUG": "lightblue",
+        "INFO": "lightgreen",
+        "WARNING": "orange",
+        "ERROR": "red",
+        "CRITICAL": "magenta",
+    }
+
     try:
         with open(log_file_path, 'r') as log_file:
-            log_content = log_file.read()
+            log_content = log_file.readlines()  # Read the log file line by line
+
+        colored_logs = []
+        for line in log_content:
+            parts = line.split(" ", 3)  # Split based on spaces
+            if len(parts) >= 3:
+                # Extract the timestamp and level
+                timestamp = " ".join(parts[:2])
+                level = parts[2].strip(":")  # Get the level and strip the colon
+                message = parts[3] if len(parts) > 3 else ""  # Get the message
+
+                # Determine the color based on the level
+                color = level_colors.get(level, "white")  # Default to white if level not found
+
+                # Create a colored HTML line
+                colored_logs.append(f'<span style="color: {color};">{timestamp} {level}: {message}</span><br>')
+            else:
+                colored_logs.append(f'<span style="color: white;">{line.strip()}</span><br>')  # Default for unexpected lines
+
         return render_template_string('''        
                     <!DOCTYPE html>
                     <html lang="en">
@@ -88,7 +114,7 @@ def view_logs():
                     </head>
                     <body>
                         <div class="log-content">
-                            <pre>{{ log_content }}</pre>
+                            <pre>{{ colored_logs|safe }}</pre>  <!-- Render the colored logs safely -->
                         </div>
                         <script>
                             // Scroll to the bottom of the log content
@@ -96,7 +122,7 @@ def view_logs():
                         </script>
                     </body>
                     </html>
-                ''', log_content=log_content)
+                ''', colored_logs=''.join(colored_logs))  # Join the colored logs for rendering
 
     except Exception as e:
         return Response(f"Error reading log file: {str(e)}", status=500)
