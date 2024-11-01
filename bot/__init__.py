@@ -77,4 +77,9 @@ class Bot:
             logger.critical(f"Update that caused error: {json.dumps(update, indent=4)}")
 
             if user and lang:
-                self.deliver_message(user, translate(lang, "error"))
+                try:
+                    self.deliver_message(user, translate(lang, "error"))
+                except Exception as e_:
+                    logger.critical(f"Couldn't notify user {user} about error: {e_}")
+                else:
+                    logger.info(f"User {user} notified about error")
