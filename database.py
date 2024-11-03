@@ -367,7 +367,7 @@ class Media(Database):
     def get(cls, conditions: dict = None, limit: int = None, offset: int = None,
             order_by: str = None, sort_direction: str = 'ASC', include_column_names=False, custom_select=None) -> list or dict or tuple:
         joined_select = """
-        SELECT media.*, media_fts.description 
+        SELECT user_id, media_type, file_id, caption, media.media_id, description 
         FROM media 
         LEFT JOIN media_fts ON media.media_id = media_fts.media_id
         """
