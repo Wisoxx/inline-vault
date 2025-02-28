@@ -1,6 +1,6 @@
 import database as db
 import telepot
-from logger import setup_logger
+from logger import setup_logger, thread_local, set_show_debug
 from translations import translate
 import json
 
@@ -45,8 +45,8 @@ class Bot:
             self.deliver_message(user[0], text, reply_markup=reply_markup)
         logger.info(f"Sent to {len(users)} users")
 
-
-    def get_user(self, update):
+    @staticmethod
+    def get_user(update):
         if "message" in update:
             user = update["message"]["chat"]["id"]
             lang = update["message"]["from"]["language_code"]
@@ -79,8 +79,17 @@ class Bot:
                 self.handle_chat_member_status(user, lang, update)
 
         except Exception as e:
+            set_show_debug(True)
+
+            # Flush debug logs for this update
+            if hasattr(thread_local, "debug_log_stack"):
+                logger.debug("Debug log stack before crash:")
+                while thread_local.debug_log_stack:
+                    logger.debug(thread_local.debug_log_stack.pop(0))  # Log and remove each debug entry
+                del thread_local.debug_log_stack  # Clear the stack
+
             logger.critical(f"Couldn't process update: {e}", exc_info=True)
-            logger.critical(f"Update that caused error: {json.dumps(update, indent=4)}")
+            set_show_debug(False)
 
             if user and lang:
                 try:

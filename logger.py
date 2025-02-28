@@ -1,29 +1,66 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+import threading
+from datetime import datetime
+
+
+LOG_PATH = os.path.join(os.path.expanduser("~"), 'mysite', 'logs')
+os.makedirs(LOG_PATH, exist_ok=True)
+
+LOG_FILE = os.path.join(LOG_PATH, 'app.log')
+
+# Thread-local storage for per-update debug logs
+thread_local = threading.local()
+show_debug = False  # controls debug showing in logs
+
+
+def set_show_debug(value: bool):
+    global show_debug
+    show_debug = value
+
+
+class DebugLogFilter(logging.Filter):
+    """Custom filter to store DEBUG logs per Telegram update in thread-local storage."""
+    def filter(self, record):
+        if record.levelno == logging.DEBUG:
+            # Check if we should show debug logs
+            if show_debug:
+                return True  # Allow DEBUG logs to be logged to the output
+
+            # Otherwise, store them in thread-local storage
+            if not hasattr(thread_local, "debug_log_stack"):
+                thread_local.debug_log_stack = []
+            log_entry = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} {record.levelname}: {record.getMessage()} [in {record.pathname}:{record.lineno}]"
+            thread_local.debug_log_stack.append(log_entry)  # Store formatted log
+            return False  # Prevent DEBUG log from being processed normally
+        return True  # Allow all other log levels
 
 
 def setup_logger(name):
-    log_path = os.path.join(os.path.expanduser("~"), 'mysite', 'logs')
-    os.makedirs(log_path, exist_ok=True)
+    logger = logging.getLogger("main_logger")  # Use a single global name
+    if logger.hasHandlers():
+        return logger  # Prevent duplicate handlers
 
-    logger = logging.getLogger(name)
+    file_handler = RotatingFileHandler(LOG_FILE, maxBytes=10_000_000, backupCount=3, encoding='utf-8')
+    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]',
+                                  datefmt='%Y-%m-%d %H:%M:%S')
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.DEBUG)
 
-    if not logger.hasHandlers():
-        file_handler = RotatingFileHandler(os.path.join(log_path, 'app.log'), maxBytes=500000, backupCount=3)
-        formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]',
-                                      datefmt='%Y-%m-%d %H:%M:%S')
-        file_handler.setFormatter(formatter)
-        file_handler.setLevel(logging.INFO)
+    # Add debug log filter
+    debug_filter = DebugLogFilter()
+    file_handler.addFilter(debug_filter)
 
-        console_handler = logging.StreamHandler()
-        console_formatter = logging.Formatter('%(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
-        console_handler.setFormatter(console_formatter)
-        console_handler.setLevel(logging.DEBUG)
+    console_handler = logging.StreamHandler()
+    console_formatter = logging.Formatter('%(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
+    console_handler.setFormatter(console_formatter)
+    console_handler.setLevel(logging.DEBUG)
 
-        logger.setLevel(logging.DEBUG)  # lowest level to allow separate levels for files and console
-        logger.addHandler(file_handler)
-        logger.addHandler(console_handler)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    logger.propagate = False
 
     return logger
 
@@ -45,7 +82,7 @@ def process_logs():
     }
 
     try:
-        with open(log_file_path, 'r') as log_file:
+        with open(log_file_path, 'r', encoding='utf-8', errors='replace') as log_file:
             log_content = log_file.readlines()  # Read the log file line by line
 
         colored_logs = []
